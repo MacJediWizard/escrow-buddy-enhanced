@@ -1,0 +1,73 @@
+#!/bin/sh
+
+#
+#  postinstall_daemon
+#  Additional installation steps for daemon
+#
+
+set -e
+
+INSTALL_LOCATION="$3"
+DAEMON_PATH="/Library/PrivilegedHelperTools/EscrowBuddyDaemon"
+LAUNCHDAEMON_PATH="/Library/LaunchDaemons/com.netflix.escrow-buddy.daemon.plist"
+LOG_FILE="/var/log/escrow-buddy-install.log"
+
+log() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S'): $1" | tee -a "$LOG_FILE"
+}
+
+log "Installing Escrow Buddy Daemon..."
+
+# Create PrivilegedHelperTools directory if it doesn't exist
+if [ ! -d "/Library/PrivilegedHelperTools" ]; then
+    mkdir -p "/Library/PrivilegedHelperTools"
+    chmod 755 "/Library/PrivilegedHelperTools"
+    chown root:wheel "/Library/PrivilegedHelperTools"
+fi
+
+# Copy daemon executable
+if [ -f "${INSTALL_LOCATION}/Library/PrivilegedHelperTools/EscrowBuddyDaemon" ]; then
+    cp "${INSTALL_LOCATION}/Library/PrivilegedHelperTools/EscrowBuddyDaemon" "$DAEMON_PATH"
+    chmod 755 "$DAEMON_PATH"
+    chown root:wheel "$DAEMON_PATH"
+    log "Daemon executable installed"
+else
+    log "ERROR: Daemon executable not found in package"
+    exit 1
+fi
+
+# Install LaunchDaemon plist
+if [ -f "${INSTALL_LOCATION}/Library/LaunchDaemons/com.netflix.escrow-buddy.daemon.plist" ]; then
+    cp "${INSTALL_LOCATION}/Library/LaunchDaemons/com.netflix.escrow-buddy.daemon.plist" "$LAUNCHDAEMON_PATH"
+    chmod 644 "$LAUNCHDAEMON_PATH"
+    chown root:wheel "$LAUNCHDAEMON_PATH"
+    log "LaunchDaemon plist installed"
+else
+    log "ERROR: LaunchDaemon plist not found in package"
+    exit 1
+fi
+
+# Unload existing daemon if running
+if launchctl list | grep -q "com.netflix.escrow-buddy.daemon"; then
+    log "Unloading existing daemon..."
+    launchctl unload "$LAUNCHDAEMON_PATH" 2>/dev/null || true
+fi
+
+# Load the new daemon
+log "Loading daemon..."
+launchctl load "$LAUNCHDAEMON_PATH"
+
+# Verify daemon is running
+sleep 2
+if launchctl list | grep -q "com.netflix.escrow-buddy.daemon"; then
+    log "Daemon loaded successfully"
+    
+    # Trigger initial health check
+    killall -USR1 EscrowBuddyDaemon 2>/dev/null || true
+else
+    log "WARNING: Daemon may not have loaded correctly"
+fi
+
+log "Daemon installation complete"
+
+exit 0

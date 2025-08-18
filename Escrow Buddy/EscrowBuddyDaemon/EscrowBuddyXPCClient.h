@@ -1,0 +1,45 @@
+//
+//  EscrowBuddyXPCClient.h
+//  Escrow Buddy Enhanced
+//
+//  Copyright 2025 Escrow Buddy Enhanced
+//
+//  Licensed under the Apache License, Version 2.0 (the "License");
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+//
+
+#import <Foundation/Foundation.h>
+#import "EscrowBuddyXPCProtocol.h"
+
+NS_ASSUME_NONNULL_BEGIN
+
+@interface EscrowBuddyXPCClient : NSObject
+
++ (instancetype)sharedClient;
+
+// Connection Management
+- (BOOL)connectToDaemon;
+- (void)disconnect;
+- (BOOL)isConnected;
+
+// Daemon Communication
+- (void)checkIfRotationNeeded:(void(^)(BOOL needed, NSString * _Nullable reason))completion;
+- (void)notifyLoginForUser:(NSString *)username;
+- (void)notifyPluginRotatedKey:(NSDictionary *)rotationInfo;
+- (void)getDaemonStatus:(void(^)(NSDictionary * _Nullable status))completion;
+
+// Synchronous check for auth plugin
+- (BOOL)shouldAuthPluginRotate;
+
+@end
+
+NS_ASSUME_NONNULL_END
