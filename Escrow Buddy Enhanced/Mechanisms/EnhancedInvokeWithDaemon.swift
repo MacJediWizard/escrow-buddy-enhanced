@@ -25,7 +25,7 @@ class EnhancedInvokeWithDaemon: EBMechanism {
         
         // Notify daemon of login
         if let username = self.username {
-            xpcClient.notifyLogin(forUser: username)
+            xpcClient.notifyLogin(forUser: username as String)
         }
         
         // Check if daemon is handling rotation
@@ -54,7 +54,7 @@ class EnhancedInvokeWithDaemon: EBMechanism {
         
         // Check for FileVault escrow profile
         let escrowInfo = getFVEscrowInfo()
-        let escrowLocation = escrowInfo.location
+        let _ = escrowInfo.location
         let escrowForced = escrowInfo.forced
         
         if !escrowForced {

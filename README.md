@@ -1,10 +1,15 @@
-# ![Escrow Buddy](images/escrow_buddy_logo_300px.png)
+# ![Escrow Buddy Enhanced](images/escrow_buddy_logo_300px.png)
 
-**Escrow Buddy is a macOS authorization plugin that allows MDM administrators to generate and escrow new FileVault personal recovery keys on Macs that lack a valid escrowed key in MDM.**
+## Enhanced Edition
+
+> **Note**: This is an enhanced fork of the original [Escrow Buddy](https://github.com/macadmins/escrow-buddy) created by Netflix Client Systems Engineering. See [CREDITS.md](CREDITS.md) for full attribution and acknowledgments.
+
+**Escrow Buddy Enhanced is a macOS authorization plugin that allows MDM administrators to generate and escrow new FileVault personal recovery keys on Macs that lack a valid escrowed key in MDM.**
+
+This enhanced version adds automatic key rotation capabilities without requiring user logout, compliance reporting, and enterprise management features.
 
 For more context around the problem of missing FileVault keys in MDM and Escrow Buddy's origin, see [this post on the Netflix Tech Blog](https://netflixtechblog.com/escrow-buddy-an-open-source-tool-from-netflix-for-remediation-of-missing-filevault-keys-in-mdm-815aef5107cd).
 
-If you've successfully deployed Escrow Buddy, we'd love to know the details in [this brief survey](https://forms.gle/cRY3t2cRwZMQtGbb8). Thank you!
 
 ---
 

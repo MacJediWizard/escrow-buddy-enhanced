@@ -1,6 +1,6 @@
 //
 //  EnhancedInvoke.swift
-//  Escrow Buddy
+//  Escrow Buddy Enhanced
 //
 //  Copyright 2025 Escrow Buddy Enhanced
 //
@@ -130,7 +130,7 @@ class EnhancedInvoke: EBMechanism {
             rotationManager.recordRotation(rotationReason)
             
             // Mark key as escrowed
-            lifecycleTracker.markKeyAsEscrowed(newKeyID, location: escrowLocation)
+            lifecycleTracker.markKey(asEscrowed: newKeyID, location: escrowLocation)
             
             // Clear manual rotation flag if set
             if rotationManager.hasManualRotationFlag() {
@@ -208,13 +208,13 @@ class EnhancedInvoke: EBMechanism {
     
     // MARK: - Helper Methods
     
-    private func getRotationReasonString(_ reason: Int) -> String {
+    private func getRotationReasonString(_ reason: RotationReason) -> String {
         switch reason {
-        case 1: return "Age-based rotation"
-        case 2: return "Key was used for recovery"
-        case 3: return "Compliance requirement"
-        case 4: return "Manual rotation requested"
-        case 5: return "Scheduled rotation"
+        case .age: return "Age-based rotation"
+        case .used: return "Key was used for recovery"
+        case .compliance: return "Compliance requirement"
+        case .manual: return "Manual rotation requested"
+        case .scheduled: return "Scheduled rotation"
         default: return "Unknown reason"
         }
     }

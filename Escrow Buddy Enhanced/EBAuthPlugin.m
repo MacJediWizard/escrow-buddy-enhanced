@@ -21,7 +21,7 @@
 //  https://github.com/tburgin/PSU_2015
 
 #import "EBAuthPlugin.h"
-#import "Escrow_Buddy-Swift.h" // Makes Swift classes available to ObjC
+#import "Escrow_Buddy_Enhanced-Swift.h" // Makes Swift classes available to ObjC
 #import "RotationManager.h"
 #import "ConfigurationManager.h"
 #import "KeyLifecycleTracker.h"

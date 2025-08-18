@@ -6,6 +6,8 @@
 
 ## Enterprise-Grade FileVault Recovery Key Management
 
+> **Attribution**: This project is an enhanced fork of [Escrow Buddy](https://github.com/macadmins/escrow-buddy) created by Netflix Client Systems Engineering. See [CREDITS.md](CREDITS.md) for full acknowledgments.
+
 Escrow Buddy Enhanced extends the original [Netflix Escrow Buddy](https://github.com/macadmins/escrow-buddy) with automatic key rotation, compliance reporting, and enterprise integration capabilities.
 
 ## 🚀 Key Features

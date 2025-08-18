@@ -7,14 +7,44 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		23E15608631CFC9227B5EDF1 /* JamfAPIClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 1C64EBCB9E8599EDC1B796F3 /* JamfAPIClient.m */; };
+		257FC37BF19EC0659A1B9A58 /* MDMRotationHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = DE30089C8F905BBFF2590BAC /* MDMRotationHandler.m */; };
+		45C7F2034DE3377919F00A53 /* EscrowBuddyDaemon.m in Sources */ = {isa = PBXBuildFile; fileRef = 46F2F4068A14968CE05668CA /* EscrowBuddyDaemon.m */; };
+		4B986AB7B368A16330241505 /* ComplianceReporter.m in Sources */ = {isa = PBXBuildFile; fileRef = 0E0039FBE777389CCC6CCCB0 /* ComplianceReporter.m */; };
+		51714F72E170146403EB381C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 42C5DD2558FBAFCFFEF9A5F7 /* main.m */; };
+		5678A45F0B435AFE9BCD82B9 /* RotationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 0041ADBB2374E593F17AB7F7 /* RotationManager.m */; };
+		5A2788CBDBA6604E06A27683 /* EnhancedInvokeWithDaemon.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6F1D3B2C1673E75CD7708E9 /* EnhancedInvokeWithDaemon.swift */; };
+		A3F174DAAF83BA63AB6A19E5 /* ConfigurationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = A54EA27AAEC0BFCF1B04F54C /* ConfigurationManager.m */; };
+		C7CCA99F1DB5D2795FD8A963 /* EnhancedInvoke.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8AB7CB043F313DEC9AF3161 /* EnhancedInvoke.swift */; };
 		C97037C229ECA0D90078F153 /* Invoke.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97037C129ECA0D90078F153 /* Invoke.swift */; };
 		C9C59E2D29EC67D8004C874F /* EBAuthPlugin.m in Sources */ = {isa = PBXBuildFile; fileRef = C9C59E2C29EC67D8004C874F /* EBAuthPlugin.m */; };
 		C9C59E3329EC8FE4004C874F /* EBMechanism.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9C59E3229EC8FE4004C874F /* EBMechanism.swift */; };
 		C9EC6C1A2A2674FB00C5D8A9 /* AuthDBSetup.sh in Resources */ = {isa = PBXBuildFile; fileRef = C9EC6C182A26743800C5D8A9 /* AuthDBSetup.sh */; };
 		C9EC6C1C2A268B0900C5D8A9 /* AuthDBTeardown.sh in Resources */ = {isa = PBXBuildFile; fileRef = C9EC6C1B2A268B0900C5D8A9 /* AuthDBTeardown.sh */; };
+		D3E30281255C0401CCCA5298 /* KeyLifecycleTracker.m in Sources */ = {isa = PBXBuildFile; fileRef = ACE793B3262E206A5EF6B6F8 /* KeyLifecycleTracker.m */; };
+		E091131F5B53455E0A7ABE8D /* EnhancedLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = B54FC9399D02D9DCEA951A8F /* EnhancedLogger.m */; };
+		EB5DD23846D91691BF0111F6 /* EscrowBuddyXPCClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 55E0308C435466457CCF19B3 /* EscrowBuddyXPCClient.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0041ADBB2374E593F17AB7F7 /* RotationManager.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = RotationManager.m; path = RotationManager.m; sourceTree = "<group>"; };
+		0E0039FBE777389CCC6CCCB0 /* ComplianceReporter.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = ComplianceReporter.m; path = ComplianceReporter.m; sourceTree = "<group>"; };
+		1B180DAE37E2EB0AA0615D39 /* RotationManager.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RotationManager.h; path = RotationManager.h; sourceTree = "<group>"; };
+		1C64EBCB9E8599EDC1B796F3 /* JamfAPIClient.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = JamfAPIClient.m; path = JamfAPIClient.m; sourceTree = "<group>"; };
+		3854D8D93D8F07F8FEB508C0 /* entitlements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = entitlements.plist; path = EscrowBuddyDaemon/entitlements.plist; sourceTree = "<group>"; };
+		42C5DD2558FBAFCFFEF9A5F7 /* main.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = main.m; path = EscrowBuddyDaemon/main.m; sourceTree = "<group>"; };
+		46F2F4068A14968CE05668CA /* EscrowBuddyDaemon.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = EscrowBuddyDaemon.m; path = EscrowBuddyDaemon/EscrowBuddyDaemon.m; sourceTree = "<group>"; };
+		51817E8B8D4FEC2151F0D928 /* ComplianceReporter.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = ComplianceReporter.h; path = ComplianceReporter.h; sourceTree = "<group>"; };
+		532AD83E8480B1CC1E2E6120 /* EscrowBuddyDaemon.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = EscrowBuddyDaemon.h; path = EscrowBuddyDaemon/EscrowBuddyDaemon.h; sourceTree = "<group>"; };
+		55E0308C435466457CCF19B3 /* EscrowBuddyXPCClient.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = EscrowBuddyXPCClient.m; path = EscrowBuddyDaemon/EscrowBuddyXPCClient.m; sourceTree = "<group>"; };
+		6C6E8610239A6B05EE43EB98 /* ConfigurationManager.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = ConfigurationManager.h; path = ConfigurationManager.h; sourceTree = "<group>"; };
+		96D45AF77DD55ADDBBFBBD9B /* EscrowBuddyXPCProtocol.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = EscrowBuddyXPCProtocol.h; path = EscrowBuddyDaemon/EscrowBuddyXPCProtocol.h; sourceTree = "<group>"; };
+		9DA0BEF65F6C4BBA1D9CA822 /* KeyLifecycleTracker.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = KeyLifecycleTracker.h; path = KeyLifecycleTracker.h; sourceTree = "<group>"; };
+		A54EA27AAEC0BFCF1B04F54C /* ConfigurationManager.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = ConfigurationManager.m; path = ConfigurationManager.m; sourceTree = "<group>"; };
+		ACE793B3262E206A5EF6B6F8 /* KeyLifecycleTracker.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = KeyLifecycleTracker.m; path = KeyLifecycleTracker.m; sourceTree = "<group>"; };
+		AFB9E34F725EDC2FB5E29322 /* EnhancedLogger.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = EnhancedLogger.h; path = EnhancedLogger.h; sourceTree = "<group>"; };
+		B54FC9399D02D9DCEA951A8F /* EnhancedLogger.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = EnhancedLogger.m; path = EnhancedLogger.m; sourceTree = "<group>"; };
+		BCE1650A25DF46C28D98F583 /* MDMRotationHandler.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = MDMRotationHandler.h; path = MDMRotationHandler.h; sourceTree = "<group>"; };
 		C97037C129ECA0D90078F153 /* Invoke.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Invoke.swift; sourceTree = "<group>"; };
 		C9C59E2429EC6785004C874F /* Escrow Buddy.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Escrow Buddy.bundle"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C9C59E2B29EC67D8004C874F /* EBAuthPlugin.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EBAuthPlugin.h; sourceTree = "<group>"; };
@@ -23,6 +53,11 @@
 		C9C59E3229EC8FE4004C874F /* EBMechanism.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EBMechanism.swift; sourceTree = "<group>"; };
 		C9EC6C182A26743800C5D8A9 /* AuthDBSetup.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = AuthDBSetup.sh; sourceTree = "<group>"; };
 		C9EC6C1B2A268B0900C5D8A9 /* AuthDBTeardown.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = AuthDBTeardown.sh; sourceTree = "<group>"; };
+		DE30089C8F905BBFF2590BAC /* MDMRotationHandler.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = MDMRotationHandler.m; path = MDMRotationHandler.m; sourceTree = "<group>"; };
+		E1174FDBFC46BD1296AE3275 /* EscrowBuddyXPCClient.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = EscrowBuddyXPCClient.h; path = EscrowBuddyDaemon/EscrowBuddyXPCClient.h; sourceTree = "<group>"; };
+		E6F1D3B2C1673E75CD7708E9 /* EnhancedInvokeWithDaemon.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = EnhancedInvokeWithDaemon.swift; path = Mechanisms/EnhancedInvokeWithDaemon.swift; sourceTree = "<group>"; };
+		EC37261A12C15A85F4485C46 /* JamfAPIClient.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = JamfAPIClient.h; path = JamfAPIClient.h; sourceTree = "<group>"; };
+		F8AB7CB043F313DEC9AF3161 /* EnhancedInvoke.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = EnhancedInvoke.swift; path = Mechanisms/EnhancedInvoke.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -36,6 +71,29 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3AC3395DACE0D734F810CD9E /* Escrow Buddy */ = {
+			isa = PBXGroup;
+			children = (
+				51817E8B8D4FEC2151F0D928 /* ComplianceReporter.h */,
+				0E0039FBE777389CCC6CCCB0 /* ComplianceReporter.m */,
+				6C6E8610239A6B05EE43EB98 /* ConfigurationManager.h */,
+				A54EA27AAEC0BFCF1B04F54C /* ConfigurationManager.m */,
+				AFB9E34F725EDC2FB5E29322 /* EnhancedLogger.h */,
+				B54FC9399D02D9DCEA951A8F /* EnhancedLogger.m */,
+				EC37261A12C15A85F4485C46 /* JamfAPIClient.h */,
+				1C64EBCB9E8599EDC1B796F3 /* JamfAPIClient.m */,
+				9DA0BEF65F6C4BBA1D9CA822 /* KeyLifecycleTracker.h */,
+				ACE793B3262E206A5EF6B6F8 /* KeyLifecycleTracker.m */,
+				BCE1650A25DF46C28D98F583 /* MDMRotationHandler.h */,
+				DE30089C8F905BBFF2590BAC /* MDMRotationHandler.m */,
+				1B180DAE37E2EB0AA0615D39 /* RotationManager.h */,
+				0041ADBB2374E593F17AB7F7 /* RotationManager.m */,
+				FB4BD43762A538C9E4B74B65 /* EscrowBuddyDaemon */,
+				EB3CBF2363050E2FDD545328 /* Mechanisms */,
+			);
+			name = "Escrow Buddy";
+			sourceTree = "<group>";
+		};
 		C9C59E1B29EC6785004C874F = {
 			isa = PBXGroup;
 			children = (
@@ -45,6 +103,7 @@
 				C9C59E3429EC8FEA004C874F /* Mechanisms */,
 				C9EC6C192A26745000C5D8A9 /* Utility */,
 				C9C59E2529EC6785004C874F /* Products */,
+				3AC3395DACE0D734F810CD9E /* Escrow Buddy */,
 			);
 			sourceTree = "<group>";
 		};
@@ -74,12 +133,35 @@
 			path = Utility;
 			sourceTree = "<group>";
 		};
+		EB3CBF2363050E2FDD545328 /* Mechanisms */ = {
+			isa = PBXGroup;
+			children = (
+				F8AB7CB043F313DEC9AF3161 /* EnhancedInvoke.swift */,
+				E6F1D3B2C1673E75CD7708E9 /* EnhancedInvokeWithDaemon.swift */,
+			);
+			name = Mechanisms;
+			sourceTree = "<group>";
+		};
+		FB4BD43762A538C9E4B74B65 /* EscrowBuddyDaemon */ = {
+			isa = PBXGroup;
+			children = (
+				532AD83E8480B1CC1E2E6120 /* EscrowBuddyDaemon.h */,
+				46F2F4068A14968CE05668CA /* EscrowBuddyDaemon.m */,
+				E1174FDBFC46BD1296AE3275 /* EscrowBuddyXPCClient.h */,
+				55E0308C435466457CCF19B3 /* EscrowBuddyXPCClient.m */,
+				96D45AF77DD55ADDBBFBBD9B /* EscrowBuddyXPCProtocol.h */,
+				42C5DD2558FBAFCFFEF9A5F7 /* main.m */,
+				3854D8D93D8F07F8FEB508C0 /* entitlements.plist */,
+			);
+			name = EscrowBuddyDaemon;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		C9C59E2329EC6785004C874F /* Escrow Buddy */ = {
+		C9C59E2329EC6785004C874F /* Escrow Buddy Enhanced */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = C9C59E2829EC6785004C874F /* Build configuration list for PBXNativeTarget "Escrow Buddy" */;
+			buildConfigurationList = C9C59E2829EC6785004C874F /* Build configuration list for PBXNativeTarget "Escrow Buddy Enhanced" */;
 			buildPhases = (
 				C9C59E2029EC6785004C874F /* Sources */,
 				C9C59E2129EC6785004C874F /* Frameworks */,
@@ -89,7 +171,7 @@
 			);
 			dependencies = (
 			);
-			name = "Escrow Buddy";
+			name = "Escrow Buddy Enhanced";
 			productName = "Escrow Buddy";
 			productReference = C9C59E2429EC6785004C874F /* Escrow Buddy.bundle */;
 			productType = "com.apple.product-type.bundle";
@@ -122,7 +204,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				C9C59E2329EC6785004C874F /* Escrow Buddy */,
+				C9C59E2329EC6785004C874F /* Escrow Buddy Enhanced */,
 			);
 		};
 /* End PBXProject section */
@@ -147,6 +229,18 @@
 				C9C59E2D29EC67D8004C874F /* EBAuthPlugin.m in Sources */,
 				C9C59E3329EC8FE4004C874F /* EBMechanism.swift in Sources */,
 				C97037C229ECA0D90078F153 /* Invoke.swift in Sources */,
+				4B986AB7B368A16330241505 /* ComplianceReporter.m in Sources */,
+				A3F174DAAF83BA63AB6A19E5 /* ConfigurationManager.m in Sources */,
+				E091131F5B53455E0A7ABE8D /* EnhancedLogger.m in Sources */,
+				23E15608631CFC9227B5EDF1 /* JamfAPIClient.m in Sources */,
+				D3E30281255C0401CCCA5298 /* KeyLifecycleTracker.m in Sources */,
+				257FC37BF19EC0659A1B9A58 /* MDMRotationHandler.m in Sources */,
+				5678A45F0B435AFE9BCD82B9 /* RotationManager.m in Sources */,
+				45C7F2034DE3377919F00A53 /* EscrowBuddyDaemon.m in Sources */,
+				EB5DD23846D91691BF0111F6 /* EscrowBuddyXPCClient.m in Sources */,
+				51714F72E170146403EB381C /* main.m in Sources */,
+				C7CCA99F1DB5D2795FD8A963 /* EnhancedInvoke.swift in Sources */,
+				5A2788CBDBA6604E06A27683 /* EnhancedInvokeWithDaemon.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -273,22 +367,23 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Mac Admins Open Source (T4SK8ZXCXG)";
+				CODE_SIGN_IDENTITY = "Developer ID Application: William Grzybowski (96KRXXRRDF)";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 7;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = T4SK8ZXCXG;
+				DEVELOPMENT_TEAM = 96KRXXRRDF;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSPrincipalClass = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Security/SecurityAgentPlugins";
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MARKETING_VERSION = 1.0.0;
 				OTHER_CODE_SIGN_FLAGS = "--timestamp";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.netflix.Escrow-Buddy";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.macjediwizard.Escrow-Buddy-Enhanced";
+				PRODUCT_NAME = "Escrow Buddy Enhanced";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -303,22 +398,23 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Mac Admins Open Source (T4SK8ZXCXG)";
+				CODE_SIGN_IDENTITY = "Developer ID Application: William Grzybowski (96KRXXRRDF)";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 7;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_TEAM = T4SK8ZXCXG;
+				DEVELOPMENT_TEAM = 96KRXXRRDF;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSPrincipalClass = "";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Security/SecurityAgentPlugins";
 				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MARKETING_VERSION = 1.0.0;
 				OTHER_CODE_SIGN_FLAGS = "--timestamp";
-				PRODUCT_BUNDLE_IDENTIFIER = "com.netflix.Escrow-Buddy";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.macjediwizard.Escrow-Buddy-Enhanced";
+				PRODUCT_NAME = "Escrow Buddy Enhanced";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -340,7 +436,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C9C59E2829EC6785004C874F /* Build configuration list for PBXNativeTarget "Escrow Buddy" */ = {
+		C9C59E2829EC6785004C874F /* Build configuration list for PBXNativeTarget "Escrow Buddy Enhanced" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				C9C59E2929EC6785004C874F /* Debug */,

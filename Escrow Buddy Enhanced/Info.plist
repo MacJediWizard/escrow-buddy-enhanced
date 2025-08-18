@@ -5,13 +5,13 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>en</string>
     <key>CFBundleExecutable</key>
-    <string>Escrow Buddy</string>
+    <string>Escrow Buddy Enhanced</string>
     <key>CFBundleIdentifier</key>
-    <string>com.netflix.Escrow-Buddy</string>
+    <string>com.macjediwizard.Escrow-Buddy-Enhanced</string>
     <key>CFBundleInfoDictionaryVersion</key>
     <string>6.0</string>
     <key>CFBundleName</key>
-    <string>Escrow Buddy</string>
+    <string>Escrow Buddy Enhanced</string>
     <key>CFBundlePackageType</key>
     <string>BNDL</string>
     <key>CFBundleShortVersionString</key>
