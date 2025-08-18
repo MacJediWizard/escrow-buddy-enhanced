@@ -18,3 +18,11 @@
 //
 
 #import "EBAuthPlugin.h"
+#import "RotationManager.h"
+#import "ConfigurationManager.h"
+#import "KeyLifecycleTracker.h"
+#import "EnhancedLogger.h"
+#import "ComplianceReporter.h"
+#import "JamfAPIClient.h"
+#import "EscrowBuddyDaemon/EscrowBuddyXPCClient.h"
+#import "EscrowBuddyDaemon/EscrowBuddyXPCProtocol.h"

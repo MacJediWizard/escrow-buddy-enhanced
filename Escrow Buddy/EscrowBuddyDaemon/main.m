@@ -22,7 +22,7 @@
 #import <os/log.h>
 #import <signal.h>
 
-static EscrowBuddyDaemon *daemon = nil;
+static EscrowBuddyDaemon *escrowDaemon = nil;
 static BOOL shouldKeepRunning = YES;
 static os_log_t logger = nil;
 
@@ -34,22 +34,22 @@ void signalHandler(int signal) {
         case SIGINT:
             os_log_info(logger, "Shutting down daemon");
             shouldKeepRunning = NO;
-            if (daemon) {
-                [daemon stopDaemon];
+            if (escrowDaemon) {
+                [escrowDaemon stopDaemon];
             }
             break;
             
         case SIGHUP:
             os_log_info(logger, "Reloading configuration");
-            if (daemon) {
-                [daemon reloadConfiguration];
+            if (escrowDaemon) {
+                [escrowDaemon reloadConfiguration];
             }
             break;
             
         case SIGUSR1:
             os_log_info(logger, "Performing immediate rotation check");
-            if (daemon) {
-                [daemon performBackgroundRotationWithCompletion:nil];
+            if (escrowDaemon) {
+                [escrowDaemon performBackgroundRotationWithCompletion:nil];
             }
             break;
             
@@ -104,28 +104,28 @@ int main(int argc, const char * argv[]) {
         setupSignalHandlers();
         
         // Create and start the daemon
-        daemon = [EscrowBuddyDaemon sharedDaemon];
+        escrowDaemon = [EscrowBuddyDaemon sharedDaemon];
         
         if (debugMode) {
-            [daemon enableDebugMode:YES];
+            [escrowDaemon enableDebugMode:YES];
             os_log_info(logger, "Debug mode enabled");
         }
         
         // Start the daemon
-        [daemon startDaemon];
+        [escrowDaemon startDaemon];
         
         if (oneShot) {
             // Run once mode - perform immediate check and exit
             os_log_info(logger, "Running in one-shot mode");
             
-            if ([daemon isRotationNeeded]) {
+            if ([escrowDaemon isRotationNeeded]) {
                 os_log_info(logger, "Rotation needed, performing rotation");
-                [daemon performBackgroundRotation];
+                [escrowDaemon performBackgroundRotation];
             } else {
                 os_log_info(logger, "No rotation needed");
             }
             
-            [daemon stopDaemon];
+            [escrowDaemon stopDaemon];
             return 0;
         }
         
@@ -141,8 +141,8 @@ int main(int argc, const char * argv[]) {
         os_log_info(logger, "Daemon shutting down");
         
         // Clean shutdown
-        if (daemon) {
-            [daemon stopDaemon];
+        if (escrowDaemon) {
+            [escrowDaemon stopDaemon];
         }
         
         os_log_info(logger, "Daemon terminated");
