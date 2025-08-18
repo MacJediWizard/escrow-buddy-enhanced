@@ -18,11 +18,13 @@
 //
 
 #import "EscrowBuddyDaemon.h"
+#import "EscrowBuddyXPCProtocol.h"
 #import "RotationManager.h"
 #import "ConfigurationManager.h"
 #import "KeyLifecycleTracker.h"
 #import "EnhancedLogger.h"
 #import "ComplianceReporter.h"
+#import "MDMRotationHandler.h"
 #import <os/log.h>
 
 static NSString *const kDaemonIdentifier = @"com.netflix.escrow-buddy.daemon";
@@ -43,6 +45,7 @@ static NSString *const kDaemonStatusFile = @"/var/db/escrow_buddy_daemon_status.
 @property (nonatomic, strong) ConfigurationManager *configManager;
 @property (nonatomic, strong) KeyLifecycleTracker *lifecycleTracker;
 @property (nonatomic, strong) EnhancedLogger *enhancedLogger;
+@property (nonatomic, strong) MDMRotationHandler *mdmHandler;
 @end
 
 @implementation EscrowBuddyDaemon
@@ -70,6 +73,7 @@ static NSString *const kDaemonStatusFile = @"/var/db/escrow_buddy_daemon_status.
         _configManager = [ConfigurationManager sharedManager];
         _lifecycleTracker = [KeyLifecycleTracker sharedTracker];
         _enhancedLogger = [EnhancedLogger sharedLogger];
+        _mdmHandler = [MDMRotationHandler sharedHandler];
         
         [self loadDaemonState];
     }
@@ -462,65 +466,52 @@ static NSString *const kDaemonStatusFile = @"/var/db/escrow_buddy_daemon_status.
 #pragma mark - Key Operations
 
 - (BOOL)rotateFileVaultKey {
-    os_log_info(self.logger, "Executing FileVault key rotation");
+    os_log_info(self.logger, "Executing FileVault key rotation via MDM");
     
-    // Create input plist for fdesetup
-    NSMutableDictionary *inputDict = [NSMutableDictionary dictionary];
-    
-    // Get current user credentials (would need to be securely stored/retrieved)
-    // For daemon operation, we need to use a different approach than user credentials
-    // This typically requires MDM commands or stored credentials
-    
-    NSString *tempFile = [NSTemporaryDirectory() stringByAppendingPathComponent:[[NSUUID UUID] UUIDString]];
-    [inputDict writeToFile:tempFile atomically:YES];
-    
-    // Execute fdesetup
-    NSTask *task = [[NSTask alloc] init];
-    [task setLaunchPath:@"/usr/bin/fdesetup"];
-    [task setArguments:@[@"changerecovery", @"-personal", @"-inputplist", @"<", tempFile]];
-    
-    NSPipe *outputPipe = [NSPipe pipe];
-    NSPipe *errorPipe = [NSPipe pipe];
-    
-    [task setStandardOutput:outputPipe];
-    [task setStandardError:errorPipe];
-    
-    @try {
-        [task launch];
-        [task waitUntilExit];
-    } @catch (NSException *exception) {
-        os_log_error(self.logger, "Failed to execute fdesetup: %{public}@", exception.reason);
-        [[NSFileManager defaultManager] removeItemAtPath:tempFile error:nil];
-        return NO;
-    }
-    
-    // Clean up temp file
-    [[NSFileManager defaultManager] removeItemAtPath:tempFile error:nil];
-    
-    int exitCode = [task terminationStatus];
-    
-    if (exitCode == 0) {
-        os_log_info(self.logger, "FileVault key rotation successful");
+    // Check if MDM rotation is available
+    if (![self.mdmHandler canPerformMDMRotation]) {
+        os_log_error(self.logger, "MDM rotation not available");
         
-        // Parse output for new key ID if available
-        NSData *outputData = [[outputPipe fileHandleForReading] readDataToEndOfFile];
-        NSString *output = [[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding];
-        
-        // Log success
-        [self.enhancedLogger logRotationEvent:@"BackgroundRotation" 
-                                      reason:@"Scheduled" 
-                                       keyID:[[NSUUID UUID] UUIDString]];
-        
-        return YES;
-    } else {
-        NSData *errorData = [[errorPipe fileHandleForReading] readDataToEndOfFile];
-        NSString *errorOutput = [[NSString alloc] initWithData:errorData encoding:NSUTF8StringEncoding];
-        
-        os_log_error(self.logger, "FileVault key rotation failed with exit code %d: %{public}@", 
-                    exitCode, errorOutput);
+        // Notify MDM that rotation is needed but cannot be performed
+        [self.mdmHandler notifyMDMRotationNeeded];
         
         return NO;
     }
+    
+    __block BOOL rotationSuccess = NO;
+    __block NSString *newKeyID = nil;
+    
+    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+    
+    // Perform MDM-triggered rotation
+    [self.mdmHandler performMDMRotationWithCompletion:^(BOOL success, NSString *keyID, NSError *error) {
+        rotationSuccess = success;
+        newKeyID = keyID;
+        
+        if (success) {
+            os_log_info(self.logger, "MDM rotation completed successfully with key ID: %{public}@", keyID);
+            
+            // Log success
+            [self.enhancedLogger logRotationEvent:@"BackgroundRotation" 
+                                          reason:@"Scheduled" 
+                                           keyID:keyID ?: [[NSUUID UUID] UUIDString]];
+        } else {
+            os_log_error(self.logger, "MDM rotation failed: %{public}@", error.localizedDescription);
+        }
+        
+        dispatch_semaphore_signal(semaphore);
+    }];
+    
+    // Wait for rotation to complete (with timeout)
+    dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(300 * NSEC_PER_SEC)); // 5 minute timeout
+    long result = dispatch_semaphore_wait(semaphore, timeout);
+    
+    if (result != 0) {
+        os_log_error(self.logger, "MDM rotation timed out");
+        return NO;
+    }
+    
+    return rotationSuccess;
 }
 
 - (BOOL)verifyCurrentKey {
