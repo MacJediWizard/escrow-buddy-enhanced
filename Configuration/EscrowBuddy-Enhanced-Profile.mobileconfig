@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>PayloadType</key>
+            <string>com.netflix.Escrow-Buddy</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>PayloadIdentifier</key>
+            <string>com.netflix.Escrow-Buddy.settings.enhanced</string>
+            <key>PayloadUUID</key>
+            <string>A1B2C3D4-E5F6-7890-ABCD-EF1234567890</string>
+            <key>PayloadDisplayName</key>
+            <string>Escrow Buddy Enhanced Settings</string>
+            <key>PayloadDescription</key>
+            <string>Configures automatic FileVault recovery key rotation and compliance reporting</string>
+            <key>PayloadOrganization</key>
+            <string>Your Organization</string>
+            
+            <!-- Core Rotation Settings -->
+            <key>AutoRotationEnabled</key>
+            <true/>
+            <key>RotationIntervalDays</key>
+            <integer>90</integer>
+            <key>RotateAfterUse</key>
+            <true/>
+            <key>MaxKeyAge</key>
+            <integer>365</integer>
+            <key>MinimumKeyAge</key>
+            <integer>1</integer>
+            <key>RotationPolicy</key>
+            <string>standard</string>
+            
+            <!-- Compliance Settings -->
+            <key>EnableComplianceReporting</key>
+            <true/>
+            <key>ComplianceStandard</key>
+            <string>NIST</string>
+            <!-- Options: none, NIST, ISO27001, PCI-DSS, HIPAA, SOC2 -->
+            
+            <!-- Notification Settings -->
+            <key>EnableNotifications</key>
+            <true/>
+            <key>NotificationDaysBefore</key>
+            <integer>7</integer>
+            <key>NotifyOnRotationSuccess</key>
+            <true/>
+            <key>NotifyOnRotationFailure</key>
+            <true/>
+            
+            <!-- Security Settings -->
+            <key>RequireUserAuthentication</key>
+            <false/>
+            <key>AllowManualRotation</key>
+            <true/>
+            <key>EnforceKeyComplexity</key>
+            <true/>
+            
+            <!-- API Integration Settings (Optional) -->
+            <key>EnableAPIIntegration</key>
+            <false/>
+            <key>JamfServerURL</key>
+            <string>https://your.jamf.server</string>
+            
+            <!-- Webhook Settings (Optional) -->
+            <key>EnableWebhooks</key>
+            <false/>
+            <key>WebhookURL</key>
+            <string>https://your.webhook.endpoint</string>
+        </dict>
+    </array>
+    
+    <key>PayloadDisplayName</key>
+    <string>Escrow Buddy Enhanced Configuration</string>
+    <key>PayloadDescription</key>
+    <string>Configures Escrow Buddy Enhanced for automatic FileVault key rotation with compliance reporting</string>
+    <key>PayloadIdentifier</key>
+    <string>com.organization.escrowbuddy.enhanced.config</string>
+    <key>PayloadOrganization</key>
+    <string>Your Organization</string>
+    <key>PayloadScope</key>
+    <string>System</string>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadUUID</key>
+    <string>B2C3D4E5-F6A7-8901-BCDE-F23456789012</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+</dict>
+</plist>
