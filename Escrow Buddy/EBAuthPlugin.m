@@ -22,6 +22,9 @@
 
 #import "EBAuthPlugin.h"
 #import "Escrow_Buddy-Swift.h" // Makes Swift classes available to ObjC
+#import "RotationManager.h"
+#import "ConfigurationManager.h"
+#import "KeyLifecycleTracker.h"
 
 #pragma mark
 #pragma mark Entry Point Wrappers
@@ -151,8 +154,18 @@ extern OSStatus AuthorizationPluginCreate(
     MechanismRecord *mechanism = (MechanismRecord *)inMechanism;
 
     if (mechanism->fInvoke) {
-        Invoke *invoke = [[Invoke alloc] initWithMechanism:mechanism];
-        [invoke run];
+        // Check if enhanced features are enabled
+        ConfigurationManager *configManager = [ConfigurationManager sharedManager];
+        
+        if (configManager.autoRotationEnabled) {
+            // Use enhanced invoke mechanism with auto-rotation support
+            EnhancedInvoke *enhancedInvoke = [[EnhancedInvoke alloc] initWithMechanism:mechanism];
+            [enhancedInvoke run];
+        } else {
+            // Fall back to original invoke for backward compatibility
+            Invoke *invoke = [[Invoke alloc] initWithMechanism:mechanism];
+            [invoke run];
+        }
     }
 
     // Default "Allow Login". Used if none of the mechanisms above are called or
