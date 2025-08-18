@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.netflix.escrow-buddy.daemon</string>
+    
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Library/PrivilegedHelperTools/EscrowBuddyDaemon</string>
+    </array>
+    
+    <key>MachServices</key>
+    <dict>
+        <key>com.netflix.escrow-buddy.xpc</key>
+        <true/>
+    </dict>
+    
+    <key>RunAtLoad</key>
+    <true/>
+    
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+        <key>Crashed</key>
+        <true/>
+    </dict>
+    
+    <key>ThrottleInterval</key>
+    <integer>60</integer>
+    
+    <key>StartInterval</key>
+    <integer>86400</integer>
+    <!-- Check once per day, daemon will handle more frequent checks internally -->
+    
+    <key>StandardOutPath</key>
+    <string>/var/log/escrow-buddy-daemon.log</string>
+    
+    <key>StandardErrorPath</key>
+    <string>/var/log/escrow-buddy-daemon.error.log</string>
+    
+    <key>UserName</key>
+    <string>root</string>
+    
+    <key>GroupName</key>
+    <string>wheel</string>
+    
+    <key>ProcessType</key>
+    <string>Background</string>
+    
+    <key>LowPriorityBackgroundIO</key>
+    <true/>
+    
+    <key>Nice</key>
+    <integer>10</integer>
+    
+    <key>HardResourceLimits</key>
+    <dict>
+        <key>NumberOfFiles</key>
+        <integer>256</integer>
+    </dict>
+    
+    <key>SoftResourceLimits</key>
+    <dict>
+        <key>NumberOfFiles</key>
+        <integer>256</integer>
+    </dict>
+    
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>ESCROW_BUDDY_DAEMON</key>
+        <string>1</string>
+    </dict>
+</dict>
+</plist>
