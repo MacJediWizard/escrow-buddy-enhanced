@@ -5,17 +5,40 @@
 # Escrow Buddy Enhanced
 ## Enterprise FileVault Key Management with Automatic Rotation
 
+**The ONLY FileVault key rotation solution that works WITHOUT user logout!**
+
+[![Version](https://img.shields.io/badge/version-2.0.0-blue)](https://github.com/MacJediWizard/escrow-buddy-enhanced/releases)
+[![macOS](https://img.shields.io/badge/macOS-10.15%2B-green)](https://www.apple.com/macos/)
+[![License](https://img.shields.io/badge/license-Apache%202.0-orange)](LICENSE)
+
+### 📚 Quick Links
+[**Why Enhanced?**](#-the-problem-we-solve) | [**Features**](#-what-makes-us-enhanced) | [**Jamf Setup**](JAMF_SETUP_GUIDE.md) | [**Documentation**](Documentation/) | [**Support**](#support)
+
 > **Note**: This is an enhanced fork of the original [Escrow Buddy](https://github.com/macadmins/escrow-buddy) created by Netflix Client Systems Engineering. See [CREDITS.md](CREDITS.md) for full attribution and acknowledgments.
 
-**Escrow Buddy Enhanced is a macOS authorization plugin that automatically rotates FileVault recovery keys WITHOUT requiring user logout.**
+## 🎯 The Problem We Solve
 
-This enhanced version adds:
-- ✅ **Automatic background rotation** - No user interaction needed!
-- ✅ **Jamf Pro integration** - Uses jamf binary, no API credentials required
-- ✅ **Compliance reporting** - NIST, ISO27001, PCI-DSS, HIPAA, SOC2
-- ✅ **Enterprise management** - Full policy control via MDM
+The original Escrow Buddy requires users to **logout and login** to rotate FileVault keys - disrupting work and requiring user cooperation. 
 
-For more context around the problem of missing FileVault keys in MDM and Escrow Buddy's origin, see [this post on the Netflix Tech Blog](https://netflixtechblog.com/escrow-buddy-an-open-source-tool-from-netflix-for-remediation-of-missing-filevault-keys-in-mdm-815aef5107cd).
+**Escrow Buddy Enhanced solves this with true automatic rotation:**
+
+### ✨ Key Enhancements Over Original
+
+- **🚀 Background Daemon** - Rotates keys silently without ANY user interaction
+- **⏰ Scheduled Rotation** - Set it and forget it (30, 60, 90 days - your choice)
+- **🔐 Jamf Binary Method** - No API credentials to manage or secure
+- **📊 Enterprise Compliance** - Automated reports for NIST, ISO27001, PCI-DSS, HIPAA, SOC2
+- **🔄 Smart Rotation** - Coordinates between daemon and auth plugin to prevent conflicts
+- **📝 Audit Everything** - Complete chain of custody for every key rotation
+
+### Why This Matters
+
+- **IT Teams**: Deploy once, never chase users to logout again
+- **Security Teams**: Guaranteed compliance without manual intervention  
+- **End Users**: Zero disruption to their workflow
+- **Auditors**: Complete automated compliance reporting
+
+For background on the FileVault escrow challenge, see [Netflix's original blog post](https://netflixtechblog.com/escrow-buddy-an-open-source-tool-from-netflix-for-remediation-of-missing-filevault-keys-in-mdm-815aef5107cd).
 
 
 ---
@@ -34,23 +57,49 @@ For more context around the problem of missing FileVault keys in MDM and Escrow 
 
 ---
 
+## 🚀 What Makes Us Enhanced?
+
+Unlike the original Escrow Buddy that requires user logout, **Escrow Buddy Enhanced** rotates keys automatically in the background:
+
+| Feature | Original Escrow Buddy | Escrow Buddy Enhanced |
+|---------|----------------------|----------------------|
+| **Key Rotation** | Requires user logout/login | ✅ **Automatic background rotation** |
+| **User Disruption** | User must logout | ✅ **Zero user interaction** |
+| **Scheduling** | Manual trigger only | ✅ **Automated scheduling** |
+| **Compliance** | Basic logging | ✅ **Full compliance reporting** |
+| **Jamf Integration** | Basic escrow | ✅ **Native Jamf binary support** |
+
 ## Deployment
 
-1. **Ensure you have an escrow profile scoped to all Macs** with the [FDERecoveryKeyEscrow](https://developer.apple.com/documentation/devicemanagement/fderecoverykeyescrow) payload.
+### Quick Start with Jamf Pro (Recommended)
 
-    This will ensure that any newly generated FileVault recovery key, no matter how it's generated, will be escrowed to your MDM server.
+1. **Deploy the Enhanced package via Jamf**
+   ```bash
+   # Package includes both auth plugin AND background daemon
+   # Daemon enables rotation WITHOUT logout!
+   ```
 
-1. Use your MDM to **install the latest Escrow Buddy Enhanced installer package** on your Macs.
+2. **Configure automatic rotation** (no user interaction needed!)
+   ```bash
+   # Enable background rotation - happens automatically!
+   defaults write /Library/Preferences/com.netflix.Escrow-Buddy AutoRotationEnabled -bool true
+   defaults write /Library/Preferences/com.netflix.Escrow-Buddy RotationIntervalDays -int 90
+   ```
 
-    You can choose to install on all Macs or limit to those that need FileVault recovery keys escrowed.
+3. **For Jamf users - Use the binary method** (no API credentials needed!)
+   ```bash
+   # Configure to use Jamf binary instead of API
+   defaults write /Library/Preferences/com.netflix.Escrow-Buddy UseJamfBinary -bool true
+   ```
 
-1. Use your MDM to **run this command** (in root context) on Macs that do not have a valid FileVault recovery key escrowed:
+### Key Features in Action
 
-        defaults write /Library/Preferences/com.netflix.Escrow-Buddy.plist GenerateNewKey -bool true
+- **🔄 Automatic Rotation**: Keys rotate every 90 days (configurable) without any user action
+- **📊 Compliance Ready**: Built-in NIST, ISO27001, PCI-DSS, HIPAA, SOC2 reporting
+- **🔧 Zero Touch**: Once deployed, runs completely in background
+- **📝 Full Audit Trail**: Comprehensive logging of all rotation events
 
-    It is recommended to have this script run dynamically on Macs that need it using your MDM's dynamic scoping feature. See the [Examples](https://github.com/macadmins/escrow-buddy/wiki/Examples) page for examples.
-
-That's it! The next time a FileVault-authorized user logs in to the Mac, a new FileVault personal recovery key will be generated and escrowed to your MDM.
+See [JAMF_SETUP_GUIDE.md](JAMF_SETUP_GUIDE.md) for detailed Jamf setup or [Documentation/DEPLOYMENT_GUIDE.md](Documentation/DEPLOYMENT_GUIDE.md) for other MDMs.
 
 ---
 
