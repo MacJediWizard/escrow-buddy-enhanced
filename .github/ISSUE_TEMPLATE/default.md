@@ -1,6 +1,6 @@
 ---
 name: Issue
-about: Report a bug, suggest a feature, or ask for help with Escrow Buddy.
+about: Report a bug, suggest a feature, or ask for help with Escrow Buddy Enhanced.
 ---
 
 **Summary**

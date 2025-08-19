@@ -51,7 +51,7 @@ cd escrow-buddy-enhanced
 
 # Add files to Xcode project
 ./add_files_to_xcode.sh
-open "Escrow Buddy.xcodeproj"
+open "Escrow Buddy.xcodeproj"  # Note: Xcode project retains original name for compatibility
 # Manually add files as instructed
 
 # Build

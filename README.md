@@ -1,4 +1,6 @@
-# ![Escrow Buddy Enhanced](logo.png)
+<p align="center">
+  <img src="logo.png" alt="Escrow Buddy Enhanced Logo" width="400">
+</p>
 
 # Escrow Buddy Enhanced
 ## Enterprise FileVault Key Management with Automatic Rotation
