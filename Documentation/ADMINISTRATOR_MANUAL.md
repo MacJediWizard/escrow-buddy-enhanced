@@ -152,7 +152,7 @@ sudo defaults write /Library/Preferences/com.netflix.escrow-buddy ValidateSSLCer
 #!/bin/bash
 # morning_check.sh
 
-echo "=== Escrow Buddy Daily Check ==="
+echo "=== Escrow Buddy Enhanced Daily Check ==="
 date
 
 # Check daemon status across fleet
@@ -264,9 +264,9 @@ REPORT_FILE="/var/reports/escrow_buddy_$REPORT_DATE.html"
 
 cat > $REPORT_FILE << EOF
 <html>
-<head><title>Escrow Buddy Daily Report - $REPORT_DATE</title></head>
+<head><title>Escrow Buddy Enhanced Daily Report - $REPORT_DATE</title></head>
 <body>
-<h1>Escrow Buddy Status Report</h1>
+<h1>Escrow Buddy Enhanced Status Report</h1>
 <p>Date: $REPORT_DATE</p>
 
 <h2>Statistics</h2>
@@ -286,7 +286,7 @@ $(get_critical_issues)
 EOF
 
 # Email report
-mail -s "Escrow Buddy Daily Report" admin@company.com < $REPORT_FILE
+mail -s "Escrow Buddy Enhanced Daily Report" admin@company.com < $REPORT_FILE
 ```
 
 ## Security Best Practices
@@ -478,7 +478,7 @@ import requests
 from datetime import datetime
 
 def send_to_siem(event_data):
-    """Send Escrow Buddy events to SIEM"""
+    """Send Escrow Buddy Enhanced events to SIEM"""
     
     siem_endpoint = "https://siem.company.com/api/events"
     
@@ -514,7 +514,7 @@ if [ ! -z "$FAILURES" ]; then
         -H "Content-Type: application/json" \
         -H "Authorization: Bearer $SNOW_TOKEN" \
         -d '{
-            "short_description": "Escrow Buddy Rotation Failures Detected",
+            "short_description": "Escrow Buddy Enhanced Rotation Failures Detected",
             "description": "'"$FAILURES"'",
             "priority": "3",
             "assignment_group": "Desktop Support"

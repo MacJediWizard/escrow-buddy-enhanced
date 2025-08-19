@@ -1,12 +1,12 @@
 # Escrow Buddy Enhanced
 
 <p align="center">
-  <img src="images/escrow_buddy_logo_600px.png" alt="Escrow Buddy Logo" width="300">
+  <img src="images/escrow_buddy_logo_600px.png" alt="Escrow Buddy Enhanced Logo" width="300">
 </p>
 
 ## Enterprise-Grade FileVault Recovery Key Management
 
-> **Attribution**: This project is an enhanced fork of [Escrow Buddy](https://github.com/macadmins/escrow-buddy) created by Netflix Client Systems Engineering. See [CREDITS.md](CREDITS.md) for full acknowledgments.
+> **Attribution**: Escrow Buddy Enhanced is an enhanced fork of [Escrow Buddy](https://github.com/macadmins/escrow-buddy) created by Netflix Client Systems Engineering. See [CREDITS.md](CREDITS.md) for full acknowledgments.
 
 Escrow Buddy Enhanced extends the original [Netflix Escrow Buddy](https://github.com/macadmins/escrow-buddy) with automatic key rotation, compliance reporting, and enterprise integration capabilities.
 
@@ -221,7 +221,7 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 
 ## 🙏 Acknowledgments
 
-- Original [Escrow Buddy](https://github.com/macadmins/escrow-buddy) by Netflix
+- Based on original [Escrow Buddy](https://github.com/macadmins/escrow-buddy) by Netflix
 - macOS admin community for testing and feedback
 - Contributors and maintainers
 

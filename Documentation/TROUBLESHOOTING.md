@@ -239,7 +239,7 @@ sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keyc
 #!/bin/bash
 # Save as escrow_buddy_health.sh
 
-echo "=== Escrow Buddy Health Check ==="
+echo "=== Escrow Buddy Enhanced Health Check ==="
 echo
 
 echo "1. Daemon Status:"

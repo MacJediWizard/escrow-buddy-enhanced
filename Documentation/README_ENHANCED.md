@@ -2,7 +2,7 @@
 
 > **Enterprise-grade FileVault key rotation without user disruption**
 
-This is an enhanced version of Netflix's Escrow Buddy that adds automatic background rotation capabilities, eliminating the need for users to logout for key rotation.
+Escrow Buddy Enhanced is an enhanced version of Netflix's original Escrow Buddy that adds automatic background rotation capabilities, eliminating the need for users to logout for key rotation.
 
 ## 🚀 What's New in Enhanced Version
 

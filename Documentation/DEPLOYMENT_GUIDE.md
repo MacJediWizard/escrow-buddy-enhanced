@@ -49,8 +49,8 @@ open "Escrow Buddy.xcodeproj"
 ```
 
 In Xcode:
-1. Right-click "Escrow Buddy" group
-2. Select "Add Files to Escrow Buddy..."
+1. Right-click "Escrow Buddy Enhanced" group
+2. Select "Add Files to Escrow Buddy Enhanced..."
 3. Add all new .h and .m files from the list
 4. Create "EscrowBuddyDaemon" group and add daemon files
 5. Ensure Swift files are added to the main target
