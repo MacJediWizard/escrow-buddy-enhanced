@@ -22,7 +22,6 @@
 #import "RotationManager.h"
 #import "ConfigurationManager.h"
 #import "EnhancedLogger.h"
-#import "JamfAPIClient.h"
 
 static NSString *const kComplianceReportPath = @"/var/db/escrow_buddy_compliance";
 static NSString *const kViolationHistoryPath = @"/var/db/escrow_buddy_violations.plist";
@@ -173,7 +172,12 @@ static NSString *const kViolationHistoryPath = @"/var/db/escrow_buddy_violations
     NSMutableDictionary *audit = [NSMutableDictionary dictionary];
     
     audit[@"auditDate"] = [NSDate date];
-    audit[@"systemInfo"] = [[JamfAPIClient sharedClient] getSystemInfo];
+    // Get system info
+    NSMutableDictionary *systemInfo = [NSMutableDictionary dictionary];
+    systemInfo[@"hostname"] = [[NSProcessInfo processInfo] hostName];
+    systemInfo[@"osVersion"] = [[NSProcessInfo processInfo] operatingSystemVersionString];
+    systemInfo[@"timestamp"] = [NSDate date];
+    audit[@"systemInfo"] = systemInfo;
     
     NSMutableDictionary *standardResults = [NSMutableDictionary dictionary];
     
@@ -203,7 +207,7 @@ static NSString *const kViolationHistoryPath = @"/var/db/escrow_buddy_violations
     NSMutableArray *violations = [NSMutableArray array];
     
     NSInteger keyAge = [self.lifecycleTracker getCurrentKeyAgeDays];
-    NSInteger maxAge = self.configManager.maxKeyAge;
+    // NSInteger maxAge = self.configManager.maxKeyAge; // Reserved for future use
     
     for (NSNumber *standardNum in self.enabledStandards) {
         ComplianceStandard standard = [standardNum integerValue];
@@ -650,20 +654,71 @@ static NSString *const kViolationHistoryPath = @"/var/db/escrow_buddy_violations
 - (void)submitReportToJamf:(ComplianceReport *)report 
                 completion:(void(^)(BOOL success, NSError *error))completion {
     
-    JamfAPIClient *jamfClient = [JamfAPIClient sharedClient];
+    // Write report to Extension Attribute file for Jamf to pick up
     NSDictionary *reportData = [report toDictionary];
+    NSString *eaPath = @"/Library/Application Support/JAMF/compliance_report.plist";
     
-    [jamfClient reportComplianceStatus:reportData completion:completion];
+    // Create directory if needed
+    NSString *directory = [eaPath stringByDeletingLastPathComponent];
+    [[NSFileManager defaultManager] createDirectoryAtPath:directory 
+                              withIntermediateDirectories:YES 
+                                               attributes:nil 
+                                                    error:nil];
+    
+    NSError *writeError;
+    BOOL success = [reportData writeToFile:eaPath atomically:YES];
+    
+    if (completion) {
+        if (success) {
+            // Optionally trigger recon to update immediately
+            NSTask *reconTask = [[NSTask alloc] init];
+            reconTask.launchPath = @"/usr/local/bin/jamf";
+            reconTask.arguments = @[@"recon"];
+            @try {
+                [reconTask launch];
+            }
+            @catch (NSException *exception) {
+                // Ignore recon errors
+            }
+            completion(YES, nil);
+        } else {
+            completion(NO, writeError);
+        }
+    }
 }
 
 - (void)submitReportToWebhook:(ComplianceReport *)report 
                    webhookURL:(NSString *)url 
                    completion:(void(^)(BOOL success, NSError *error))completion {
     
-    JamfAPIClient *jamfClient = [JamfAPIClient sharedClient];
     NSDictionary *reportData = [report toDictionary];
     
-    [jamfClient sendWebhookNotification:reportData webhookURL:url completion:completion];
+    // Create webhook request
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]];
+    request.HTTPMethod = @"POST";
+    [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+    
+    NSError *jsonError;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:reportData options:0 error:&jsonError];
+    
+    if (jsonError) {
+        if (completion) completion(NO, jsonError);
+        return;
+    }
+    
+    request.HTTPBody = jsonData;
+    
+    NSURLSession *session = [NSURLSession sharedSession];
+    NSURLSessionDataTask *task = [session dataTaskWithRequest:request 
+                                             completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+        if (completion) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completion(error == nil, error);
+            });
+        }
+    }];
+    
+    [task resume];
 }
 
 - (void)emailReport:(ComplianceReport *)report 

@@ -2,6 +2,8 @@
 //  MDMRotationHandler.h
 //  Escrow Buddy Enhanced
 //
+//  Simplified version using Jamf binary for rotation - no API needed!
+//
 //  Copyright 2025 Escrow Buddy Enhanced
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,11 +23,10 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-typedef NS_ENUM(NSInteger, MDMRotationMethod) {
-    MDMRotationMethodJamfPro,           // Use Jamf Pro API to trigger rotation
-    MDMRotationMethodAppleMDM,          // Use Apple MDM commands
-    MDMRotationMethodProfileCommand,    // Use configuration profile-based rotation
-    MDMRotationMethodCustomScript       // Use custom script execution
+typedef NS_ENUM(NSInteger, MDMType) {
+    MDMTypeJamfPro = 0,      // Uses Jamf binary
+    MDMTypeGeneric,          // Generic MDM
+    MDMTypeCustom            // Custom script
 };
 
 typedef void(^MDMRotationCompletionHandler)(BOOL success, NSString * _Nullable newKeyID, NSError * _Nullable error);
@@ -34,32 +35,20 @@ typedef void(^MDMRotationCompletionHandler)(BOOL success, NSString * _Nullable n
 
 + (instancetype)sharedHandler;
 
-// MDM-based rotation methods
+// MDM-based rotation using Jamf binary
 - (BOOL)canPerformMDMRotation;
 - (void)performMDMRotationWithCompletion:(MDMRotationCompletionHandler)completion;
-- (void)triggerJamfProRotation:(MDMRotationCompletionHandler)completion;
-- (void)triggerAppleMDMRotation:(MDMRotationCompletionHandler)completion;
-
-// Profile-triggered rotation
-- (BOOL)installRotationProfile;
-- (BOOL)removeRotationProfile;
-- (BOOL)isRotationProfileInstalled;
 
 // MDM communication
 - (void)notifyMDMRotationNeeded;
-- (void)requestMDMRotationPermission:(void(^)(BOOL granted))completion;
-- (BOOL)waitForMDMRotationCompletion:(NSTimeInterval)timeout;
 
 // Configuration
-@property (nonatomic, assign) MDMRotationMethod preferredMethod;
-@property (nonatomic, strong, nullable) NSString *mdmServerURL;
-@property (nonatomic, strong, nullable) NSString *mdmAPIKey;
+@property (nonatomic, assign) MDMType mdmType;
 @property (nonatomic, assign) BOOL useMDMEscrow;
 
 // Status
-- (NSDictionary *)getMDMRotationStatus;
-- (NSDate * _Nullable)getLastMDMRotationDate;
-- (BOOL)isMDMRotationInProgress;
+- (NSDate * _Nullable)lastSuccessfulRotation;
+- (BOOL)isRotationInProgress;
 
 @end
 

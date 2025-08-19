@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		23E15608631CFC9227B5EDF1 /* JamfAPIClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 1C64EBCB9E8599EDC1B796F3 /* JamfAPIClient.m */; };
 		257FC37BF19EC0659A1B9A58 /* MDMRotationHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = DE30089C8F905BBFF2590BAC /* MDMRotationHandler.m */; };
 		45C7F2034DE3377919F00A53 /* EscrowBuddyDaemon.m in Sources */ = {isa = PBXBuildFile; fileRef = 46F2F4068A14968CE05668CA /* EscrowBuddyDaemon.m */; };
 		4B986AB7B368A16330241505 /* ComplianceReporter.m in Sources */ = {isa = PBXBuildFile; fileRef = 0E0039FBE777389CCC6CCCB0 /* ComplianceReporter.m */; };
@@ -30,7 +29,6 @@
 		0041ADBB2374E593F17AB7F7 /* RotationManager.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = RotationManager.m; path = RotationManager.m; sourceTree = "<group>"; };
 		0E0039FBE777389CCC6CCCB0 /* ComplianceReporter.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = ComplianceReporter.m; path = ComplianceReporter.m; sourceTree = "<group>"; };
 		1B180DAE37E2EB0AA0615D39 /* RotationManager.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RotationManager.h; path = RotationManager.h; sourceTree = "<group>"; };
-		1C64EBCB9E8599EDC1B796F3 /* JamfAPIClient.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = JamfAPIClient.m; path = JamfAPIClient.m; sourceTree = "<group>"; };
 		3854D8D93D8F07F8FEB508C0 /* entitlements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = entitlements.plist; path = EscrowBuddyDaemon/entitlements.plist; sourceTree = "<group>"; };
 		42C5DD2558FBAFCFFEF9A5F7 /* main.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = main.m; path = EscrowBuddyDaemon/main.m; sourceTree = "<group>"; };
 		46F2F4068A14968CE05668CA /* EscrowBuddyDaemon.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = EscrowBuddyDaemon.m; path = EscrowBuddyDaemon/EscrowBuddyDaemon.m; sourceTree = "<group>"; };
@@ -56,7 +54,6 @@
 		DE30089C8F905BBFF2590BAC /* MDMRotationHandler.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = MDMRotationHandler.m; path = MDMRotationHandler.m; sourceTree = "<group>"; };
 		E1174FDBFC46BD1296AE3275 /* EscrowBuddyXPCClient.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = EscrowBuddyXPCClient.h; path = EscrowBuddyDaemon/EscrowBuddyXPCClient.h; sourceTree = "<group>"; };
 		E6F1D3B2C1673E75CD7708E9 /* EnhancedInvokeWithDaemon.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = EnhancedInvokeWithDaemon.swift; path = Mechanisms/EnhancedInvokeWithDaemon.swift; sourceTree = "<group>"; };
-		EC37261A12C15A85F4485C46 /* JamfAPIClient.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = JamfAPIClient.h; path = JamfAPIClient.h; sourceTree = "<group>"; };
 		F8AB7CB043F313DEC9AF3161 /* EnhancedInvoke.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = EnhancedInvoke.swift; path = Mechanisms/EnhancedInvoke.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -80,8 +77,6 @@
 				A54EA27AAEC0BFCF1B04F54C /* ConfigurationManager.m */,
 				AFB9E34F725EDC2FB5E29322 /* EnhancedLogger.h */,
 				B54FC9399D02D9DCEA951A8F /* EnhancedLogger.m */,
-				EC37261A12C15A85F4485C46 /* JamfAPIClient.h */,
-				1C64EBCB9E8599EDC1B796F3 /* JamfAPIClient.m */,
 				9DA0BEF65F6C4BBA1D9CA822 /* KeyLifecycleTracker.h */,
 				ACE793B3262E206A5EF6B6F8 /* KeyLifecycleTracker.m */,
 				BCE1650A25DF46C28D98F583 /* MDMRotationHandler.h */,
@@ -232,7 +227,6 @@
 				4B986AB7B368A16330241505 /* ComplianceReporter.m in Sources */,
 				A3F174DAAF83BA63AB6A19E5 /* ConfigurationManager.m in Sources */,
 				E091131F5B53455E0A7ABE8D /* EnhancedLogger.m in Sources */,
-				23E15608631CFC9227B5EDF1 /* JamfAPIClient.m in Sources */,
 				D3E30281255C0401CCCA5298 /* KeyLifecycleTracker.m in Sources */,
 				257FC37BF19EC0659A1B9A58 /* MDMRotationHandler.m in Sources */,
 				5678A45F0B435AFE9BCD82B9 /* RotationManager.m in Sources */,

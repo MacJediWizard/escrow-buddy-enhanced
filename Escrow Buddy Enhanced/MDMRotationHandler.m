@@ -2,6 +2,8 @@
 //  MDMRotationHandler.m
 //  Escrow Buddy Enhanced
 //
+//  Simplified version using Jamf binary for rotation - no API needed!
+//
 //  Copyright 2025 Escrow Buddy Enhanced
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,23 +20,18 @@
 //
 
 #import "MDMRotationHandler.h"
-#import "JamfAPIClient.h"
-#import "EnhancedLogger.h"
 #import "ConfigurationManager.h"
 #import <os/log.h>
-#import <IOKit/IOKitLib.h>
 
-static NSString *const kMDMRotationProfilePath = @"/Library/Managed Preferences/com.netflix.escrow-buddy.rotation.plist";
 static NSString *const kMDMRotationStatusFile = @"/var/db/escrow_buddy_mdm_status.plist";
-static NSString *const kRotationProfileIdentifier = @"com.netflix.escrow-buddy.rotation";
+static NSString *const kJamfBinaryPath = @"/usr/local/bin/jamf";
+static NSString *const kRotationPolicyEvent = @"rotateFileVaultKey";
 
 @interface MDMRotationHandler ()
 @property (nonatomic, strong) os_log_t logger;
-@property (nonatomic, strong) JamfAPIClient *jamfClient;
 @property (nonatomic, strong) NSDate *lastRotationDate;
 @property (nonatomic, assign) BOOL rotationInProgress;
 @property (nonatomic, strong) dispatch_queue_t mdmQueue;
-@property (nonatomic, strong) NSTimer *rotationTimeoutTimer;
 @end
 
 @implementation MDMRotationHandler
@@ -53,10 +50,9 @@ static NSString *const kRotationProfileIdentifier = @"com.netflix.escrow-buddy.r
 - (instancetype)init {
     self = [super init];
     if (self) {
-        _logger = os_log_create("com.netflix.Escrow-Buddy", "MDMRotation");
-        _mdmQueue = dispatch_queue_create("com.netflix.escrow-buddy.mdm", DISPATCH_QUEUE_SERIAL);
-        _jamfClient = [JamfAPIClient sharedClient];
-        _preferredMethod = MDMRotationMethodJamfPro;
+        _logger = os_log_create("com.macjediwizard.Escrow-Buddy-Enhanced", "MDMRotation");
+        _mdmQueue = dispatch_queue_create("com.macjediwizard.escrow-buddy.mdm", DISPATCH_QUEUE_SERIAL);
+        _mdmType = MDMTypeJamfPro;  // Default to Jamf
         _useMDMEscrow = YES;
         
         [self loadMDMStatus];
@@ -67,24 +63,34 @@ static NSString *const kRotationProfileIdentifier = @"com.netflix.escrow-buddy.r
 #pragma mark - MDM Rotation Methods
 
 - (BOOL)canPerformMDMRotation {
-    // Check if MDM is configured and available
-    ConfigurationManager *config = [ConfigurationManager sharedManager];
+    // Check if Jamf binary exists
+    BOOL jamfExists = [[NSFileManager defaultManager] fileExistsAtPath:kJamfBinaryPath];
     
-    switch (self.preferredMethod) {
-        case MDMRotationMethodJamfPro:
-            return self.jamfClient != nil && config.jamfServerURL != nil;
-            
-        case MDMRotationMethodAppleMDM:
-            return [self isAppleMDMAvailable];
-            
-        case MDMRotationMethodProfileCommand:
-            return [self isRotationProfileInstalled];
-            
-        case MDMRotationMethodCustomScript:
-            return [self hasCustomScriptPermission];
-            
-        default:
-            return NO;
+    if (!jamfExists) {
+        os_log_error(self.logger, "Jamf binary not found at %{public}@", kJamfBinaryPath);
+        return NO;
+    }
+    
+    // Check if we're enrolled in Jamf
+    NSTask *checkTask = [[NSTask alloc] init];
+    checkTask.launchPath = kJamfBinaryPath;
+    checkTask.arguments = @[@"checkJSSConnection"];
+    
+    NSPipe *outputPipe = [NSPipe pipe];
+    checkTask.standardOutput = outputPipe;
+    checkTask.standardError = outputPipe;
+    
+    @try {
+        [checkTask launch];
+        [checkTask waitUntilExit];
+        
+        BOOL enrolled = (checkTask.terminationStatus == 0);
+        os_log_info(self.logger, "Jamf enrollment status: %{public}@", enrolled ? @"Enrolled" : @"Not enrolled");
+        return enrolled;
+    }
+    @catch (NSException *exception) {
+        os_log_error(self.logger, "Failed to check Jamf connection: %{public}@", exception.reason);
+        return NO;
     }
 }
 
@@ -100,103 +106,83 @@ static NSString *const kRotationProfileIdentifier = @"com.netflix.escrow-buddy.r
         return;
     }
     
-    self.rotationInProgress = YES;
-    
-    dispatch_async(self.mdmQueue, ^{
-        switch (self.preferredMethod) {
-            case MDMRotationMethodJamfPro:
-                [self triggerJamfProRotation:completion];
-                break;
-                
-            case MDMRotationMethodAppleMDM:
-                [self triggerAppleMDMRotation:completion];
-                break;
-                
-            case MDMRotationMethodProfileCommand:
-                [self triggerProfileBasedRotation:completion];
-                break;
-                
-            case MDMRotationMethodCustomScript:
-                [self triggerCustomScriptRotation:completion];
-                break;
-        }
-    });
-}
-
-#pragma mark - Jamf Pro Rotation
-
-- (void)triggerJamfProRotation:(MDMRotationCompletionHandler)completion {
-    os_log_info(self.logger, "Triggering FileVault rotation via Jamf Pro");
-    
-    // Get device serial number
-    NSString *serialNumber = [self getDeviceSerialNumber];
-    if (!serialNumber) {
-        os_log_error(self.logger, "Failed to get device serial number");
-        self.rotationInProgress = NO;
+    if (![self canPerformMDMRotation]) {
+        os_log_error(self.logger, "Cannot perform MDM rotation - Jamf not available");
         if (completion) {
             NSError *error = [NSError errorWithDomain:@"MDMRotation" 
-                                                code:500 
-                                            userInfo:@{NSLocalizedDescriptionKey: @"Failed to get device serial"}];
+                                                code:503 
+                                            userInfo:@{NSLocalizedDescriptionKey: @"Jamf not available"}];
             completion(NO, nil, error);
         }
         return;
     }
     
-    // Create Jamf Pro command to rotate FileVault key
-    NSDictionary *commandPayload = @{
-        @"general": @{
-            @"command": @"EnableRemoteDesktop",  // This is a placeholder - actual command would be FileVault rotation
-            @"commandUuid": [[NSUUID UUID] UUIDString]
-        },
-        @"filevault": @{
-            @"action": @"rotate_recovery_key",
-            @"escrow_to_mdm": @(self.useMDMEscrow)
-        }
-    };
+    self.rotationInProgress = YES;
     
-    // Report rotation event to Jamf API
-    NSDictionary *eventData = @{
-        @"event_type": @"FileVaultRotation",
-        @"serial_number": serialNumber,
-        @"action": @"rotate_recovery_key",
-        @"escrow_to_mdm": @(self.useMDMEscrow),
-        @"timestamp": [NSDate date]
-    };
-    [self.jamfClient reportRotationEvent:eventData completion:^(BOOL success, NSError *error) {
-        if (!success) {
-            os_log_error(self.logger, "Failed to report rotation event: %{public}@", error.localizedDescription);
-        }
-    }];
-    
-    // Trigger rotation through MDM profile
-    os_log_info(self.logger, "Triggering rotation through MDM profile");
-    
-    // Wait for rotation to complete
-    [self waitForJamfRotationCompletion:serialNumber completion:completion];
+    dispatch_async(self.mdmQueue, ^{
+        [self executeJamfRotationWithCompletion:completion];
+    });
 }
 
-- (void)waitForJamfRotationCompletion:(NSString *)serialNumber 
-                           completion:(MDMRotationCompletionHandler)completion {
-    // Poll Jamf for rotation status
-    __block NSInteger attempts = 0;
-    NSInteger maxAttempts = 30; // 5 minutes with 10 second intervals
+- (void)executeJamfRotationWithCompletion:(MDMRotationCompletionHandler)completion {
+    os_log_info(self.logger, "Executing FileVault rotation using Jamf binary");
     
-    NSTimer *pollTimer = [NSTimer scheduledTimerWithTimeInterval:10.0 repeats:YES block:^(NSTimer *timer) {
-        attempts++;
+    NSTask *task = [[NSTask alloc] init];
+    task.launchPath = kJamfBinaryPath;
+    
+    // Get rotation method from configuration
+    NSString *method = [[NSUserDefaults standardUserDefaults] stringForKey:@"JamfRotationMethod"] ?: @"policy";
+    
+    if ([method isEqualToString:@"policy"]) {
+        // Method 1: Use custom policy trigger (recommended)
+        task.arguments = @[@"policy", @"-event", kRotationPolicyEvent];
+        os_log_info(self.logger, "Using Jamf policy method with event: %{public}@", kRotationPolicyEvent);
+    } else if ([method isEqualToString:@"recon"]) {
+        // Method 2: Run recon to trigger smart group policy
+        task.arguments = @[@"recon"];
+        os_log_info(self.logger, "Using Jamf recon method");
+    } else {
+        // Default to policy method
+        task.arguments = @[@"policy", @"-event", kRotationPolicyEvent];
+    }
+    
+    NSPipe *outputPipe = [NSPipe pipe];
+    NSPipe *errorPipe = [NSPipe pipe];
+    task.standardOutput = outputPipe;
+    task.standardError = errorPipe;
+    
+    __weak typeof(self) weakSelf = self;
+    
+    [task setTerminationHandler:^(NSTask *terminatedTask) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        if (!strongSelf) return;
         
-        // Check if rotation was completed via MDM
-        [self.jamfClient verifyKeyEscrowSuccess:serialNumber completion:^(BOOL escrowSuccess, NSError *error) {
-            if (escrowSuccess || attempts >= maxAttempts) {
-                [timer invalidate];
+        NSData *outputData = [[outputPipe fileHandleForReading] readDataToEndOfFile];
+        NSString *output = [[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding];
+        
+        NSData *errorData = [[errorPipe fileHandleForReading] readDataToEndOfFile];
+        NSString *errorOutput = [[NSString alloc] initWithData:errorData encoding:NSUTF8StringEncoding];
+        
+        dispatch_async(strongSelf.mdmQueue, ^{
+            if (terminatedTask.terminationStatus == 0) {
+                os_log_info(strongSelf.logger, "Jamf command executed successfully");
                 
-                if (escrowSuccess) {
+                // Check if output indicates success
+                BOOL success = YES;
+                if ([output containsString:@"failed"] || [output containsString:@"error"]) {
+                    success = NO;
+                    os_log_error(strongSelf.logger, "Jamf output indicates failure: %{public}@", output);
+                }
+                
+                if (success) {
                     NSString *newKeyID = [[NSUUID UUID] UUIDString];
-                    self.lastRotationDate = [NSDate date];
-                    self.rotationInProgress = NO;
+                    strongSelf.lastRotationDate = [NSDate date];
+                    strongSelf.rotationInProgress = NO;
                     
-                    [self saveMDMStatus];
+                    [strongSelf saveMDMStatus];
+                    [strongSelf recordRotationEvent:@"JamfBinary" success:YES];
                     
-                    os_log_info(self.logger, "Jamf Pro rotation completed successfully");
+                    os_log_info(strongSelf.logger, "FileVault key rotation completed successfully via Jamf");
                     
                     if (completion) {
                         dispatch_async(dispatch_get_main_queue(), ^{
@@ -204,457 +190,151 @@ static NSString *const kRotationProfileIdentifier = @"com.netflix.escrow-buddy.r
                         });
                     }
                 } else {
-                    self.rotationInProgress = NO;
+                    strongSelf.rotationInProgress = NO;
+                    [strongSelf recordRotationEvent:@"JamfBinary" success:NO];
                     
-                    os_log_error(self.logger, "Jamf Pro rotation failed or timed out");
-                    
+                    NSError *error = [NSError errorWithDomain:@"MDMRotation" 
+                                                        code:500 
+                                                    userInfo:@{NSLocalizedDescriptionKey: @"Jamf policy indicated failure",
+                                                             @"Output": output ?: @""}];
                     if (completion) {
-                        NSError *error = [NSError errorWithDomain:@"MDMRotation" 
-                                                            code:500 
-                                                        userInfo:@{NSLocalizedDescriptionKey: @"Rotation failed or timed out"}];
                         dispatch_async(dispatch_get_main_queue(), ^{
                             completion(NO, nil, error);
                         });
                     }
                 }
-            }
-        }];
-    }];
-    
-    [[NSRunLoop currentRunLoop] addTimer:pollTimer forMode:NSRunLoopCommonModes];
-}
-
-#pragma mark - Apple MDM Rotation
-
-- (void)triggerAppleMDMRotation:(MDMRotationCompletionHandler)completion {
-    os_log_info(self.logger, "Triggering FileVault rotation via Apple MDM");
-    
-    // This would use Apple's MDM protocol to trigger rotation
-    // Implementation depends on MDM vendor's API
-    
-    // For now, we'll simulate the command
-    NSDictionary *mdmCommand = @{
-        @"RequestType": @"RotateFileVaultKey",
-        @"CommandUUID": [[NSUUID UUID] UUIDString],
-        @"FileVault": @{
-            @"RotateRecoveryKey": @YES,
-            @"NewKeyEscrowLocation": self.mdmServerURL ?: @""
-        }
-    };
-    
-    // Send to MDM server
-    [self sendMDMCommand:mdmCommand completion:^(BOOL success, NSDictionary *response) {
-        if (success) {
-            NSString *newKeyID = response[@"NewRecoveryKeyID"];
-            self.lastRotationDate = [NSDate date];
-            self.rotationInProgress = NO;
-            
-            [self saveMDMStatus];
-            
-            if (completion) {
-                completion(YES, newKeyID, nil);
-            }
-        } else {
-            self.rotationInProgress = NO;
-            
-            if (completion) {
-                NSError *error = [NSError errorWithDomain:@"MDMRotation" 
-                                                    code:500 
-                                                userInfo:@{NSLocalizedDescriptionKey: @"MDM rotation failed"}];
-                completion(NO, nil, error);
-            }
-        }
-    }];
-}
-
-#pragma mark - Profile-Based Rotation
-
-- (void)triggerProfileBasedRotation:(MDMRotationCompletionHandler)completion {
-    os_log_info(self.logger, "Triggering profile-based FileVault rotation");
-    
-    // Install a configuration profile that triggers rotation
-    if ([self installRotationProfile]) {
-        // Profile installation triggers rotation automatically
-        // Wait for completion
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), self.mdmQueue, ^{
-            // Check if rotation completed
-            if ([self checkProfileRotationStatus]) {
-                self.lastRotationDate = [NSDate date];
-                self.rotationInProgress = NO;
-                
-                [self saveMDMStatus];
-                
-                // Remove the profile after successful rotation
-                [self removeRotationProfile];
-                
-                if (completion) {
-                    completion(YES, [[NSUUID UUID] UUIDString], nil);
-                }
             } else {
-                self.rotationInProgress = NO;
+                strongSelf.rotationInProgress = NO;
+                [strongSelf recordRotationEvent:@"JamfBinary" success:NO];
                 
+                os_log_error(strongSelf.logger, "Jamf command failed with exit code %d", terminatedTask.terminationStatus);
+                if (errorOutput.length > 0) {
+                    os_log_error(strongSelf.logger, "Error output: %{public}@", errorOutput);
+                }
+                
+                NSError *error = [NSError errorWithDomain:@"MDMRotation" 
+                                                    code:terminatedTask.terminationStatus 
+                                                userInfo:@{NSLocalizedDescriptionKey: @"Jamf command failed",
+                                                         @"ErrorOutput": errorOutput ?: @"",
+                                                         @"Output": output ?: @""}];
                 if (completion) {
-                    NSError *error = [NSError errorWithDomain:@"MDMRotation" 
-                                                        code:500 
-                                                    userInfo:@{NSLocalizedDescriptionKey: @"Profile rotation failed"}];
-                    completion(NO, nil, error);
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        completion(NO, nil, error);
+                    });
                 }
             }
         });
-    } else {
-        self.rotationInProgress = NO;
-        
-        if (completion) {
-            NSError *error = [NSError errorWithDomain:@"MDMRotation" 
-                                                code:500 
-                                            userInfo:@{NSLocalizedDescriptionKey: @"Failed to install rotation profile"}];
-            completion(NO, nil, error);
-        }
-    }
-}
-
-#pragma mark - Custom Script Rotation
-
-- (void)triggerCustomScriptRotation:(MDMRotationCompletionHandler)completion {
-    os_log_info(self.logger, "Triggering custom script FileVault rotation");
-    
-    // Use a privileged helper tool or script to perform rotation
-    NSString *scriptPath = @"/usr/local/bin/escrow_buddy_rotate.sh";
-    
-    if (![[NSFileManager defaultManager] fileExistsAtPath:scriptPath]) {
-        os_log_error(self.logger, "Custom rotation script not found");
-        self.rotationInProgress = NO;
-        
-        if (completion) {
-            NSError *error = [NSError errorWithDomain:@"MDMRotation" 
-                                                code:404 
-                                            userInfo:@{NSLocalizedDescriptionKey: @"Rotation script not found"}];
-            completion(NO, nil, error);
-        }
-        return;
-    }
-    
-    NSTask *task = [[NSTask alloc] init];
-    [task setLaunchPath:scriptPath];
-    [task setArguments:@[@"--rotate", @"--escrow"]];
-    
-    NSPipe *outputPipe = [NSPipe pipe];
-    [task setStandardOutput:outputPipe];
-    
-    [task setTerminationHandler:^(NSTask *task) {
-        if (task.terminationStatus == 0) {
-            NSData *outputData = [[outputPipe fileHandleForReading] readDataToEndOfFile];
-            NSString *output = [[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding];
-            
-            // Parse output for new key ID
-            NSString *newKeyID = [self parseKeyIDFromOutput:output];
-            
-            self.lastRotationDate = [NSDate date];
-            self.rotationInProgress = NO;
-            
-            [self saveMDMStatus];
-            
-            if (completion) {
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    completion(YES, newKeyID, nil);
-                });
-            }
-        } else {
-            self.rotationInProgress = NO;
-            
-            if (completion) {
-                NSError *error = [NSError errorWithDomain:@"MDMRotation" 
-                                                    code:500 
-                                                userInfo:@{NSLocalizedDescriptionKey: @"Script rotation failed"}];
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    completion(NO, nil, error);
-                });
-            }
-        }
     }];
     
-    @try {
-        [task launch];
-    } @catch (NSException *exception) {
-        os_log_error(self.logger, "Failed to launch rotation script: %{public}@", exception.reason);
+    NSError *launchError;
+    if (![task launchAndReturnError:&launchError]) {
+        os_log_error(self.logger, "Failed to launch Jamf binary: %{public}@", launchError.localizedDescription);
         self.rotationInProgress = NO;
         
         if (completion) {
-            NSError *error = [NSError errorWithDomain:@"MDMRotation" 
-                                                code:500 
-                                            userInfo:@{NSLocalizedDescriptionKey: exception.reason}];
-            completion(NO, nil, error);
+            dispatch_async(dispatch_get_main_queue(), ^{
+                completion(NO, nil, launchError);
+            });
         }
     }
 }
-
-#pragma mark - Profile Management
-
-- (BOOL)installRotationProfile {
-    os_log_info(self.logger, "Installing rotation profile");
-    
-    // Create a configuration profile that triggers rotation
-    NSDictionary *profile = @{
-        @"PayloadContent": @[@{
-            @"PayloadType": @"com.apple.security.FDERecoveryKeyEscrow",
-            @"PayloadVersion": @1,
-            @"PayloadIdentifier": kRotationProfileIdentifier,
-            @"PayloadUUID": [[NSUUID UUID] UUIDString],
-            @"PayloadDisplayName": @"FileVault Recovery Key Rotation",
-            @"PayloadOrganization": @"Escrow Buddy Enhanced",
-            @"RotateRecoveryKey": @YES,
-            @"EscrowLocation": self.mdmServerURL ?: @""
-        }],
-        @"PayloadType": @"Configuration",
-        @"PayloadVersion": @1,
-        @"PayloadIdentifier": kRotationProfileIdentifier,
-        @"PayloadUUID": [[NSUUID UUID] UUIDString],
-        @"PayloadDisplayName": @"FileVault Key Rotation"
-    };
-    
-    NSString *profilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:@"rotation.mobileconfig"];
-    [profile writeToFile:profilePath atomically:YES];
-    
-    // Install the profile
-    NSTask *task = [[NSTask alloc] init];
-    [task setLaunchPath:@"/usr/bin/profiles"];
-    [task setArguments:@[@"install", @"-path", profilePath]];
-    
-    @try {
-        [task launch];
-        [task waitUntilExit];
-    } @catch (NSException *exception) {
-        os_log_error(self.logger, "Failed to install profile: %{public}@", exception.reason);
-        return NO;
-    }
-    
-    // Clean up temp file
-    [[NSFileManager defaultManager] removeItemAtPath:profilePath error:nil];
-    
-    return task.terminationStatus == 0;
-}
-
-- (BOOL)removeRotationProfile {
-    os_log_info(self.logger, "Removing rotation profile");
-    
-    NSTask *task = [[NSTask alloc] init];
-    [task setLaunchPath:@"/usr/bin/profiles"];
-    [task setArguments:@[@"remove", @"-identifier", kRotationProfileIdentifier]];
-    
-    @try {
-        [task launch];
-        [task waitUntilExit];
-    } @catch (NSException *exception) {
-        os_log_error(self.logger, "Failed to remove profile: %{public}@", exception.reason);
-        return NO;
-    }
-    
-    return task.terminationStatus == 0;
-}
-
-- (BOOL)isRotationProfileInstalled {
-    NSTask *task = [[NSTask alloc] init];
-    [task setLaunchPath:@"/usr/bin/profiles"];
-    [task setArguments:@[@"show", @"-type", @"configuration"]];
-    
-    NSPipe *pipe = [NSPipe pipe];
-    [task setStandardOutput:pipe];
-    
-    @try {
-        [task launch];
-        [task waitUntilExit];
-    } @catch (NSException *exception) {
-        return NO;
-    }
-    
-    NSData *data = [[pipe fileHandleForReading] readDataToEndOfFile];
-    NSString *output = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-    
-    return [output containsString:kRotationProfileIdentifier];
-}
-
-#pragma mark - MDM Communication
 
 - (void)notifyMDMRotationNeeded {
     os_log_info(self.logger, "Notifying MDM that rotation is needed");
     
-    // Send notification to MDM server
-    NSDictionary *notification = @{
-        @"Type": @"FileVaultRotationNeeded",
-        @"DeviceUDID": [self getDeviceUDID],
-        @"Timestamp": [NSDate date],
-        @"Reason": @"Policy requirement"
-    };
+    // Write a flag that can be picked up by an Extension Attribute
+    NSMutableDictionary *status = [NSMutableDictionary dictionary];
+    status[@"RotationNeeded"] = @YES;
+    status[@"RequestDate"] = [NSDate date];
+    status[@"Reason"] = @"Policy-based rotation required";
     
-    [self sendMDMNotification:notification];
-}
-
-- (void)requestMDMRotationPermission:(void(^)(BOOL granted))completion {
-    os_log_info(self.logger, "Requesting MDM rotation permission");
+    NSString *eaPath = @"/Library/Application Support/JAMF/escrow_buddy_status.plist";
     
-    // Check with MDM server if rotation is allowed
-    NSDictionary *request = @{
-        @"Type": @"RotationPermissionRequest",
-        @"DeviceUDID": [self getDeviceUDID]
-    };
+    // Create directory if needed
+    NSString *directory = [eaPath stringByDeletingLastPathComponent];
+    [[NSFileManager defaultManager] createDirectoryAtPath:directory 
+                              withIntermediateDirectories:YES 
+                                               attributes:nil 
+                                                    error:nil];
     
-    [self sendMDMRequest:request completion:^(NSDictionary *response) {
-        BOOL granted = [response[@"Granted"] boolValue];
-        if (completion) {
-            completion(granted);
-        }
-    }];
-}
-
-- (BOOL)waitForMDMRotationCompletion:(NSTimeInterval)timeout {
-    NSDate *startTime = [NSDate date];
+    // Write status for Extension Attribute
+    [status writeToFile:eaPath atomically:YES];
     
-    while ([[NSDate date] timeIntervalSinceDate:startTime] < timeout) {
-        if (![self isMDMRotationInProgress]) {
-            return YES;
-        }
-        
-        [NSThread sleepForTimeInterval:1.0];
+    // Optionally run recon to update EA immediately
+    BOOL enableImmediateRecon = [[NSUserDefaults standardUserDefaults] boolForKey:@"EnableImmediateRecon"];
+    if (enableImmediateRecon) {
+        dispatch_async(self.mdmQueue, ^{
+            NSTask *reconTask = [[NSTask alloc] init];
+            reconTask.launchPath = kJamfBinaryPath;
+            reconTask.arguments = @[@"recon"];
+            
+            @try {
+                [reconTask launch];
+                os_log_info(self.logger, "Triggered Jamf recon to update rotation status");
+            }
+            @catch (NSException *exception) {
+                os_log_error(self.logger, "Failed to run recon: %{public}@", exception.reason);
+            }
+        });
     }
-    
-    return NO;
 }
 
-#pragma mark - Helper Methods
-
-- (NSString *)getDeviceSerialNumber {
-    io_service_t platformExpert = IOServiceGetMatchingService(kIOMainPortDefault,
-                                                               IOServiceMatching("IOPlatformExpertDevice"));
-    if (!platformExpert) return nil;
-    
-    CFStringRef serialNumberRef = IORegistryEntryCreateCFProperty(platformExpert,
-                                                                   CFSTR(kIOPlatformSerialNumberKey),
-                                                                   kCFAllocatorDefault, 0);
-    IOObjectRelease(platformExpert);
-    
-    if (!serialNumberRef) return nil;
-    
-    NSString *serialNumber = (__bridge_transfer NSString *)serialNumberRef;
-    return serialNumber;
-}
-
-- (NSString *)getDeviceUDID {
-    // Get device UDID for MDM
-    return [[NSUUID UUID] UUIDString]; // Placeholder
-}
-
-- (BOOL)isAppleMDMAvailable {
-    // Check if device is enrolled in Apple MDM
-    return [[NSFileManager defaultManager] fileExistsAtPath:@"/Library/Managed Preferences/com.apple.mdm.plist"];
-}
-
-- (BOOL)hasCustomScriptPermission {
-    // Check if custom script exists and is executable
-    NSString *scriptPath = @"/usr/local/bin/escrow_buddy_rotate.sh";
-    return [[NSFileManager defaultManager] isExecutableFileAtPath:scriptPath];
-}
-
-- (BOOL)checkProfileRotationStatus {
-    // Check if profile-based rotation completed
-    NSTask *task = [[NSTask alloc] init];
-    [task setLaunchPath:@"/usr/bin/fdesetup"];
-    [task setArguments:@[@"status"]];
-    
-    NSPipe *pipe = [NSPipe pipe];
-    [task setStandardOutput:pipe];
-    
-    @try {
-        [task launch];
-        [task waitUntilExit];
-    } @catch (NSException *exception) {
-        return NO;
-    }
-    
-    NSData *data = [[pipe fileHandleForReading] readDataToEndOfFile];
-    NSString *output = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-    
-    // Check if key was recently rotated
-    return [output containsString:@"FileVault is On"];
-}
-
-- (NSString *)parseKeyIDFromOutput:(NSString *)output {
-    // Parse script output for new key ID
-    NSArray *lines = [output componentsSeparatedByString:@"\n"];
-    for (NSString *line in lines) {
-        if ([line hasPrefix:@"NewKeyID:"]) {
-            return [line substringFromIndex:9];
-        }
-    }
-    return [[NSUUID UUID] UUIDString];
-}
-
-- (void)sendMDMCommand:(NSDictionary *)command completion:(void(^)(BOOL success, NSDictionary *response))completion {
-    // Send command to MDM server
-    // Implementation depends on MDM vendor
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), self.mdmQueue, ^{
-        if (completion) {
-            completion(YES, @{@"Status": @"Success"});
-        }
-    });
-}
-
-- (void)sendMDMNotification:(NSDictionary *)notification {
-    // Send notification to MDM server - log the event
-    [[EnhancedLogger sharedLogger] logRotationEvent:@"MDMNotification" 
-                                              reason:@"RotationNeeded" 
-                                               keyID:notification[@"DeviceUDID"]];
-}
-
-- (void)sendMDMRequest:(NSDictionary *)request completion:(void(^)(NSDictionary *response))completion {
-    // Send request to MDM server and get response
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1 * NSEC_PER_SEC)), self.mdmQueue, ^{
-        if (completion) {
-            completion(@{@"Granted": @YES});
-        }
-    });
-}
-
-#pragma mark - Status and Persistence
-
-- (NSDictionary *)getMDMRotationStatus {
-    return @{
-        @"Method": @(self.preferredMethod),
-        @"InProgress": @(self.rotationInProgress),
-        @"LastRotation": self.lastRotationDate ?: [NSNull null],
-        @"MDMConfigured": @([self canPerformMDMRotation]),
-        @"ProfileInstalled": @([self isRotationProfileInstalled])
-    };
-}
-
-- (NSDate *)getLastMDMRotationDate {
-    return self.lastRotationDate;
-}
-
-- (BOOL)isMDMRotationInProgress {
-    return self.rotationInProgress;
-}
-
-- (void)saveMDMStatus {
-    NSDictionary *status = @{
-        @"LastRotation": self.lastRotationDate ?: [NSNull null],
-        @"Method": @(self.preferredMethod)
-    };
-    
-    [status writeToFile:kMDMRotationStatusFile atomically:YES];
-}
+#pragma mark - Status Management
 
 - (void)loadMDMStatus {
     if ([[NSFileManager defaultManager] fileExistsAtPath:kMDMRotationStatusFile]) {
         NSDictionary *status = [NSDictionary dictionaryWithContentsOfFile:kMDMRotationStatusFile];
+        self.lastRotationDate = status[@"LastRotationDate"];
+        self.rotationInProgress = [status[@"RotationInProgress"] boolValue];
         
-        if (status[@"LastRotation"] != [NSNull null]) {
-            self.lastRotationDate = status[@"LastRotation"];
-        }
-        
-        if (status[@"Method"]) {
-            self.preferredMethod = [status[@"Method"] integerValue];
-        }
+        os_log_info(self.logger, "Loaded MDM status - Last rotation: %{public}@", 
+                   self.lastRotationDate ?: @"Never");
     }
+}
+
+- (void)saveMDMStatus {
+    NSMutableDictionary *status = [NSMutableDictionary dictionary];
+    
+    if (self.lastRotationDate) {
+        status[@"LastRotationDate"] = self.lastRotationDate;
+    }
+    status[@"RotationInProgress"] = @(self.rotationInProgress);
+    status[@"MDMType"] = @"JamfBinary";
+    
+    [status writeToFile:kMDMRotationStatusFile atomically:YES];
+}
+
+- (void)recordRotationEvent:(NSString *)method success:(BOOL)success {
+    NSMutableDictionary *event = [NSMutableDictionary dictionary];
+    event[@"Date"] = [NSDate date];
+    event[@"Method"] = method;
+    event[@"Success"] = @(success);
+    
+    // Load existing history
+    NSString *historyPath = @"/Library/Preferences/com.macjediwizard.Escrow-Buddy-Enhanced.plist";
+    NSMutableDictionary *prefs = [NSMutableDictionary dictionaryWithContentsOfFile:historyPath] ?: [NSMutableDictionary dictionary];
+    NSMutableArray *history = [prefs[@"RotationHistory"] mutableCopy] ?: [NSMutableArray array];
+    
+    [history addObject:event];
+    
+    // Keep only last 100 events
+    if (history.count > 100) {
+        [history removeObjectsInRange:NSMakeRange(0, history.count - 100)];
+    }
+    
+    prefs[@"RotationHistory"] = history;
+    prefs[@"LastRotation"] = [NSDate date];
+    prefs[@"RotationCount"] = @([prefs[@"RotationCount"] integerValue] + 1);
+    
+    [prefs writeToFile:historyPath atomically:YES];
+}
+
+- (NSDate *)lastSuccessfulRotation {
+    return self.lastRotationDate;
+}
+
+- (BOOL)isRotationInProgress {
+    return self.rotationInProgress;
 }
 
 @end
