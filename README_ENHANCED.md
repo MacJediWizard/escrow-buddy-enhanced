@@ -1,7 +1,7 @@
 # Escrow Buddy Enhanced
 
 <p align="center">
-  <img src="images/escrow_buddy_logo_600px.png" alt="Escrow Buddy Enhanced Logo" width="300">
+  <img src="logo.png" alt="Escrow Buddy Enhanced Logo" width="400">
 </p>
 
 ## Enterprise-Grade FileVault Recovery Key Management

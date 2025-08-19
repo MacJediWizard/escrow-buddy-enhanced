@@ -1,6 +1,7 @@
-# ![Escrow Buddy Enhanced](images/escrow_buddy_logo_300px.png)
+# ![Escrow Buddy Enhanced](logo.png)
 
-## Enhanced Edition
+# Escrow Buddy Enhanced
+## Enterprise FileVault Key Management with Automatic Rotation
 
 > **Note**: This is an enhanced fork of the original [Escrow Buddy](https://github.com/macadmins/escrow-buddy) created by Netflix Client Systems Engineering. See [CREDITS.md](CREDITS.md) for full attribution and acknowledgments.
 
@@ -27,7 +28,7 @@ For more context around the problem of missing FileVault keys in MDM and Escrow 
     - deploy a configuration profile with the [FDERecoveryKeyEscrow](https://developer.apple.com/documentation/devicemanagement/fderecoverykeyescrow) payload
     - have the ability to install packages and run shell scripts
 
-**NOTE**: Escrow Buddy only works with MDM-based escrow solutions, not escrow servers like Crypt Server or Cauliflower Vest.
+**NOTE**: Escrow Buddy Enhanced only works with MDM-based escrow solutions, not escrow servers like Crypt Server or Cauliflower Vest.
 
 ---
 
@@ -37,7 +38,7 @@ For more context around the problem of missing FileVault keys in MDM and Escrow 
 
     This will ensure that any newly generated FileVault recovery key, no matter how it's generated, will be escrowed to your MDM server.
 
-1. Use your MDM to **install the [latest Escrow Buddy installer package](https://github.com/macadmins/escrow-buddy/releases/latest)** on your Macs.
+1. Use your MDM to **install the latest Escrow Buddy Enhanced installer package** on your Macs.
 
     You can choose to install on all Macs or limit to those that need FileVault recovery keys escrowed.
 
@@ -53,13 +54,13 @@ That's it! The next time a FileVault-authorized user logs in to the Mac, a new F
 
 ## Support
 
-See the wiki for [Frequently Asked Questions](https://github.com/macadmins/escrow-buddy/wiki/FAQ) and [Troubleshooting](https://github.com/macadmins/escrow-buddy/wiki/Troubleshooting) resources.
+See the documentation for [Frequently Asked Questions](Documentation/TROUBLESHOOTING.md) and [Administrator Manual](Documentation/ADMINISTRATOR_MANUAL.md) resources.
 
-If you've read those pages and are still having problems, please search our [issues](https://github.com/macadmins/escrow-buddy/issues) (both open and closed) to see whether your issue has already been addressed there. If not, you can [open an issue](https://github.com/macadmins/escrow-buddy/issues/new?template=default.md).
+If you've read those pages and are still having problems, please search our [issues](https://github.com/MacJediWizard/escrow-buddy-enhanced/issues) (both open and closed) to see whether your issue has already been addressed there. If not, you can [open an issue](https://github.com/MacJediWizard/escrow-buddy-enhanced/issues/new).
 
 For a faster and more focused response, be sure to provide the following in your issue:
 
-- Log output (see [wiki](https://github.com/macadmins/escrow-buddy/wiki/FAQ#how-do-i-view-escrow-buddys-logs) for information on retrieving logs)
+- Log output (see [Troubleshooting Guide](Documentation/TROUBLESHOOTING.md) for information on retrieving logs)
 - macOS version you're deploying to
 - MDM (name and version) you're using
 - What troubleshooting steps you've already taken
@@ -68,18 +69,18 @@ For a faster and more focused response, be sure to provide the following in your
 
 ## Contribution
 
-Contributions are welcome! To contribute, [create a fork](https://github.com/macadmins/escrow-buddy/fork) of this repository, commit and push changes to a branch of your fork, and then submit a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request). Your changes will be reviewed by a project maintainer.
+Contributions are welcome! To contribute, [create a fork](https://github.com/MacJediWizard/escrow-buddy-enhanced/fork) of this repository, commit and push changes to a branch of your fork, and then submit a [pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request). Your changes will be reviewed by a project maintainer.
 
-Contributions don't have to be code; we appreciate any help maintaining our [wiki](https://github.com/macadmins/escrow-buddy/wiki) or answering [issues](https://github.com/macadmins/escrow-buddy/issues).
+Contributions don't have to be code; we appreciate any help maintaining our documentation or answering [issues](https://github.com/MacJediWizard/escrow-buddy-enhanced/issues).
 
-Also, if you've successfully deployed Escrow Buddy at your organization, please consider submitting [our brief survey](https://forms.gle/cRY3t2cRwZMQtGbb8) for measuring the project's community impact.
+Also, if you've successfully deployed Escrow Buddy Enhanced at your organization, your feedback is welcome!
 
 ---
 
 ## Credits
 
-Escrow Buddy was created by the **Netflix Client Systems Engineering** team.
+Original Escrow Buddy was created by the **Netflix Client Systems Engineering** team. This enhanced version adds enterprise features while maintaining full compatibility.
 
 The [Crypt](https://github.com/grahamgilbert/crypt) project was a major inspiration in the creation of this tool — huge thanks to Graham, Wes, and the Crypt team! Jeremy Baker and Tom Burgin's 2015 PSU MacAdmins [session](https://www.youtube.com/watch?v=tcmql5byA_I) on authorization plugins was also a valuable resource.
 
-Escrow Buddy is licensed under the [Apache License, version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+Escrow Buddy Enhanced is licensed under the [Apache License, version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
