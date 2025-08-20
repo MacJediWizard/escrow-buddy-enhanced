@@ -75,6 +75,13 @@ typedef NS_ENUM(NSInteger, RotationReason) {
 - (BOOL)hasManualRotationFlag;
 - (void)clearManualRotationFlag;
 
+#pragma mark - Key Rotation Execution
+
+typedef void (^RotationCompletionHandler)(BOOL success, NSError * _Nullable error);
+
+- (void)rotateKeyWithReason:(NSString *)reason 
+                  completion:(RotationCompletionHandler)completion;
+
 @end
 
 NS_ASSUME_NONNULL_END

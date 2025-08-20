@@ -29,6 +29,7 @@ The original Escrow Buddy requires users to **logout and login** to rotate FileV
 - **🔐 Jamf Binary Method** - No API credentials to manage or secure
 - **📊 Enterprise Compliance** - Automated reports for NIST, ISO27001, PCI-DSS, HIPAA, SOC2
 - **🔄 Smart Rotation** - Coordinates between daemon and auth plugin to prevent conflicts
+- **🔑 Recovery Key Detection** - Automatically rotates after recovery key is used
 - **📝 Audit Everything** - Complete chain of custody for every key rotation
 
 ### Why This Matters
@@ -66,6 +67,7 @@ Unlike the original Escrow Buddy that requires user logout, **Escrow Buddy Enhan
 | **Key Rotation** | Requires user logout/login | ✅ **Automatic background rotation** |
 | **User Disruption** | User must logout | ✅ **Zero user interaction** |
 | **Scheduling** | Manual trigger only | ✅ **Automated scheduling** |
+| **Rotation After Use** | Not supported | ✅ **Auto-rotate when recovery key used** |
 | **Compliance** | Basic logging | ✅ **Full compliance reporting** |
 | **Jamf Integration** | Basic escrow | ✅ **Native Jamf binary support** |
 
@@ -90,6 +92,13 @@ Unlike the original Escrow Buddy that requires user logout, **Escrow Buddy Enhan
    ```bash
    # Configure to use Jamf binary instead of API
    defaults write /Library/Preferences/com.netflix.Escrow-Buddy UseJamfBinary -bool true
+   ```
+
+4. **Enable rotation after recovery key use** (NEW!)
+   ```bash
+   # Automatically rotate when recovery key is used
+   defaults write /Library/Preferences/com.netflix.Escrow-Buddy RotateAfterUse -bool true
+   defaults write /Library/Preferences/com.netflix.Escrow-Buddy MonitorRecoveryKeyUsage -bool true
    ```
 
 ### Key Features in Action

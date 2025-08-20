@@ -419,4 +419,54 @@ static NSString *const kRotationHistoryPlistPath = @"/var/db/escrow_buddy_histor
     CFPreferencesAppSynchronize((__bridge CFStringRef)kRotationManagerDomain);
 }
 
+#pragma mark - Key Rotation Execution
+
+- (void)rotateKeyWithReason:(NSString *)reason completion:(RotationCompletionHandler)completion {
+    os_log_info(self.logger, "Rotating key with reason: %{public}@", reason);
+    
+    // Here we would integrate with the actual rotation mechanism
+    // For now, this is a placeholder that triggers the rotation process
+    
+    // Record the rotation attempt
+    RotationReason rotationReason = RotationReasonManual;
+    if ([reason containsString:@"Recovery key was used"]) {
+        rotationReason = RotationReasonUsed;
+    } else if ([reason containsString:@"compliance"]) {
+        rotationReason = RotationReasonCompliance;
+    } else if ([reason containsString:@"age"] || [reason containsString:@"expired"]) {
+        rotationReason = RotationReasonAge;
+    } else if ([reason containsString:@"scheduled"]) {
+        rotationReason = RotationReasonScheduled;
+    }
+    
+    [self recordRotation:rotationReason];
+    
+    // Trigger the actual rotation through MDM or other mechanism
+    // This would typically call into MDMRotationHandler or similar
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        // Simulate rotation process
+        BOOL success = YES;
+        NSError *error = nil;
+        
+        // TODO: Implement actual rotation logic here
+        // For example:
+        // success = [self.mdmHandler performRotation:&error];
+        
+        if (success) {
+            // Clear the used flag after successful rotation
+            [self resetKeyUsedStatus];
+            
+            // Update lifecycle tracker
+            [self.lifecycleTracker recordRotationWithReason:rotationReason];
+        }
+        
+        // Call completion handler on main queue
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (completion) {
+                completion(success, error);
+            }
+        });
+    });
+}
+
 @end

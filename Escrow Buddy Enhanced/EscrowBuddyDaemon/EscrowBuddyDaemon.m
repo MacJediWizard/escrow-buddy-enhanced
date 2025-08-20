@@ -25,6 +25,7 @@
 #import "EnhancedLogger.h"
 #import "ComplianceReporter.h"
 #import "MDMRotationHandler.h"
+#import "RecoveryKeyUsageDetector.h"
 #import <os/log.h>
 
 static NSString *const kDaemonIdentifier = @"com.netflix.escrow-buddy.daemon";
@@ -46,6 +47,7 @@ static NSString *const kDaemonStatusFile = @"/var/db/escrow_buddy_daemon_status.
 @property (nonatomic, strong) KeyLifecycleTracker *lifecycleTracker;
 @property (nonatomic, strong) EnhancedLogger *enhancedLogger;
 @property (nonatomic, strong) MDMRotationHandler *mdmHandler;
+@property (nonatomic, strong) RecoveryKeyUsageDetector *recoveryKeyDetector;
 @end
 
 @implementation EscrowBuddyDaemon
@@ -75,6 +77,10 @@ static NSString *const kDaemonStatusFile = @"/var/db/escrow_buddy_daemon_status.
         _enhancedLogger = [EnhancedLogger sharedLogger];
         _mdmHandler = [MDMRotationHandler sharedHandler];
         
+        // Initialize recovery key usage detector
+        _recoveryKeyDetector = [[RecoveryKeyUsageDetector alloc] initWithRotationManager:_rotationManager
+                                                                       lifecycleTracker:_lifecycleTracker];
+        
         [self loadDaemonState];
     }
     return self;
@@ -102,6 +108,12 @@ static NSString *const kDaemonStatusFile = @"/var/db/escrow_buddy_daemon_status.
     // Schedule first rotation check
     [self scheduleNextRotationCheck];
     
+    // Start recovery key usage monitoring if enabled
+    if ([[self.configManager getValueForKey:@"MonitorRecoveryKeyUsage" defaultValue:@YES] boolValue]) {
+        [self.recoveryKeyDetector startMonitoring];
+        os_log_info(self.logger, "Started recovery key usage monitoring");
+    }
+    
     // Perform initial health check
     [self performHealthCheck];
     
@@ -124,6 +136,9 @@ static NSString *const kDaemonStatusFile = @"/var/db/escrow_buddy_daemon_status.
     
     // Cancel scheduled rotation
     [self cancelScheduledRotation];
+    
+    // Stop recovery key monitoring
+    [self.recoveryKeyDetector stopMonitoring];
     
     // Stop XPC service
     [self stopXPCService];
