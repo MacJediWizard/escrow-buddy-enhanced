@@ -726,13 +726,19 @@ static NSString *const kViolationHistoryPath = @"/var/db/escrow_buddy_violations
          completion:(void(^)(BOOL success, NSError *error))completion {
     
     // Check if SMTP is enabled
-    if (self.configManager.enableSMTP && self.configManager.smtpServer) {
-        // Use SMTP relay
-        [self sendReportViaSMTP:report recipients:recipients completion:completion];
-    } else {
-        // Fallback to Mail.app via AppleScript
-        [self sendReportViaMailApp:report recipients:recipients completion:completion];
+    if (!self.configManager.enableSMTP || !self.configManager.smtpServer) {
+        [self.logger warning:@"SMTP not configured - email functionality disabled"];
+        [self.logger info:@"To enable email, configure SMTP settings in MDM profile"];
+        
+        NSError *error = [NSError errorWithDomain:@"ComplianceReporter"
+                                             code:503
+                                         userInfo:@{NSLocalizedDescriptionKey: @"SMTP not configured"}];
+        if (completion) completion(NO, error);
+        return;
     }
+    
+    // Use SMTP relay
+    [self sendReportViaSMTP:report recipients:recipients completion:completion];
 }
 
 - (void)sendReportViaSMTP:(ComplianceReport *)report
@@ -873,45 +879,7 @@ static NSString *const kViolationHistoryPath = @"/var/db/escrow_buddy_violations
     [task resume];
 }
 
-- (void)sendReportViaMailApp:(ComplianceReport *)report
-                   recipients:(NSArray<NSString *> *)recipients
-                   completion:(void(^)(BOOL success, NSError *error))completion {
-    
-    NSString *subject = [NSString stringWithFormat:@"Escrow Buddy Enhanced Compliance Report - %@",
-                        [report statusString]];
-    
-    NSString *body = [self generateEmailBody:report];
-    NSString *recipientList = [recipients componentsJoinedByString:@", "];
-    
-    // Create AppleScript to send email
-    NSString *script = [NSString stringWithFormat:
-        @"tell application \"Mail\"\n"
-        @"  set newMessage to make new outgoing message with properties {subject:\"%@\", content:\"%@\", visible:false}\n"
-        @"  tell newMessage\n"
-        @"    make new to recipient at end of to recipients with properties {address:\"%@\"}\n"
-        @"  end tell\n"
-        @"  send newMessage\n"
-        @"end tell",
-        [subject stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""],
-        [body stringByReplacingOccurrencesOfString:@"\"" withString:@"\\\""],
-        recipientList];
-    
-    NSAppleScript *appleScript = [[NSAppleScript alloc] initWithSource:script];
-    NSDictionary *errorDict = nil;
-    NSAppleEventDescriptor *result = [appleScript executeAndReturnError:&errorDict];
-    
-    if (errorDict) {
-        NSError *error = [NSError errorWithDomain:@"ComplianceReporter"
-                                             code:502
-                                         userInfo:@{NSLocalizedDescriptionKey: @"Failed to send email via Mail.app",
-                                                   NSUnderlyingErrorKey: errorDict}];
-        if (completion) completion(NO, error);
-    } else {
-        [self.logger info:@"Successfully sent compliance report email via Mail.app to %lu recipients",
-         (unsigned long)recipients.count];
-        if (completion) completion(YES, nil);
-    }
-}
+// Mail.app method removed - SMTP is the only supported email method
 
 - (NSString *)generateEmailBody:(ComplianceReport *)report {
     NSMutableString *body = [NSMutableString string];

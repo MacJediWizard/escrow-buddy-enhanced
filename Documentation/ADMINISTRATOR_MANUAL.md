@@ -405,7 +405,7 @@ tar -czf compliance_$(date +%Y%m).tar.gz /var/log/escrow_buddy_compliance/
 
 ### Overview
 
-Escrow Buddy Enhanced supports sending compliance reports and alerts via SMTP relay, eliminating the dependency on Mail.app. This enables server deployments and automated reporting without user interaction.
+Escrow Buddy Enhanced uses SMTP relay for sending compliance reports and alerts. Email functionality requires SMTP configuration - there is no Mail.app fallback. This ensures consistent behavior across all deployments including servers and headless systems.
 
 ### Supported SMTP Services
 
