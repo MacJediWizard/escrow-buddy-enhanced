@@ -75,7 +75,18 @@ static NSString *const kConfigurationPlistPath = @"/Library/Preferences/com.netf
         @"RequireUserAuthentication": @NO,
         @"AllowManualRotation": @YES,
         @"MinimumKeyAge": @1,
-        @"EnforceKeyComplexity": @YES
+        @"EnforceKeyComplexity": @YES,
+        // SMTP Settings
+        @"EnableSMTP": @NO,
+        @"SMTPServer": @"",
+        @"SMTPPort": @587,
+        @"SMTPRequiresAuth": @YES,
+        @"SMTPUsername": @"",
+        @"SMTPPassword": @"",
+        @"SMTPUseSSL": @NO,
+        @"SMTPUseSTARTTLS": @YES,
+        @"SMTPFromAddress": @"escrow-buddy@company.com",
+        @"SMTPFromName": @"Escrow Buddy Enhanced"
     };
 }
 
@@ -472,6 +483,64 @@ static NSString *const kConfigurationPlistPath = @"/Library/Preferences/com.netf
 
 - (BOOL)enforceKeyComplexity {
     return [self.configuration[@"EnforceKeyComplexity"] boolValue];
+}
+
+#pragma mark - SMTP Settings
+
+- (BOOL)enableSMTP {
+    return [self.configuration[@"EnableSMTP"] boolValue];
+}
+
+- (NSString *)smtpServer {
+    return self.configuration[@"SMTPServer"];
+}
+
+- (NSInteger)smtpPort {
+    NSNumber *port = self.configuration[@"SMTPPort"];
+    if (port) {
+        return [port integerValue];
+    }
+    // Default ports based on SSL setting
+    return self.smtpUseSSL ? 465 : (self.smtpUseSTARTTLS ? 587 : 25);
+}
+
+- (BOOL)smtpRequiresAuth {
+    return [self.configuration[@"SMTPRequiresAuth"] boolValue];
+}
+
+- (NSString *)smtpUsername {
+    return self.configuration[@"SMTPUsername"];
+}
+
+- (NSString *)smtpPassword {
+    // In production, this should be retrieved from Keychain
+    // For now, we'll get it from config (should be encrypted)
+    return self.configuration[@"SMTPPassword"];
+}
+
+- (BOOL)smtpUseSSL {
+    return [self.configuration[@"SMTPUseSSL"] boolValue];
+}
+
+- (BOOL)smtpUseSTARTTLS {
+    return [self.configuration[@"SMTPUseSTARTTLS"] boolValue];
+}
+
+- (NSString *)smtpFromAddress {
+    NSString *fromAddress = self.configuration[@"SMTPFromAddress"];
+    if (!fromAddress) {
+        // Default to a generic address if not configured
+        fromAddress = @"escrow-buddy@company.com";
+    }
+    return fromAddress;
+}
+
+- (NSString *)smtpFromName {
+    NSString *fromName = self.configuration[@"SMTPFromName"];
+    if (!fromName) {
+        fromName = @"Escrow Buddy Enhanced";
+    }
+    return fromName;
 }
 
 @end

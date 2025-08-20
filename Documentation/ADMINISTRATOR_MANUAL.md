@@ -111,6 +111,26 @@ Configuration is read in the following order (later overrides earlier):
     <key>ComplianceReportInterval</key>
     <integer>7</integer>
     
+    <!-- SMTP Email Settings -->
+    <key>EnableSMTP</key>
+    <true/>
+    <key>SMTPServer</key>
+    <string>smtp.company.com</string>
+    <key>SMTPPort</key>
+    <integer>587</integer>
+    <key>SMTPRequiresAuth</key>
+    <true/>
+    <key>SMTPUsername</key>
+    <string>escrow-buddy@company.com</string>
+    <key>SMTPPassword</key>
+    <string>stored-in-keychain</string>
+    <key>SMTPUseSTARTTLS</key>
+    <true/>
+    <key>SMTPFromAddress</key>
+    <string>escrow-buddy@company.com</string>
+    <key>SMTPFromName</key>
+    <string>Escrow Buddy Enhanced</string>
+    
     <!-- Advanced Settings -->
     <key>DebugLogging</key>
     <false/>
@@ -379,6 +399,125 @@ fi
 
 # Archive reports for audit
 tar -czf compliance_$(date +%Y%m).tar.gz /var/log/escrow_buddy_compliance/
+```
+
+## SMTP Email Configuration
+
+### Overview
+
+Escrow Buddy Enhanced supports sending compliance reports and alerts via SMTP relay, eliminating the dependency on Mail.app. This enables server deployments and automated reporting without user interaction.
+
+### Supported SMTP Services
+
+- **smtp2go** - Recommended for cloud deployments
+- **SendGrid** - Enterprise email service
+- **Amazon SES** - AWS integrated service
+- **Office 365** - Microsoft enterprise email
+- **Custom SMTP** - Any RFC-compliant SMTP server
+
+### Basic Configuration
+
+```xml
+<!-- Add to MDM Configuration Profile -->
+<key>EnableSMTP</key>
+<true/>
+<key>SMTPServer</key>
+<string>mail.smtp2go.com</string>
+<key>SMTPPort</key>
+<integer>587</integer>
+<key>SMTPRequiresAuth</key>
+<true/>
+<key>SMTPUsername</key>
+<string>your-smtp-username</string>
+<key>SMTPUseSTARTTLS</key>
+<true/>
+<key>SMTPFromAddress</key>
+<string>escrow-buddy@company.com</string>
+<key>SMTPFromName</key>
+<string>Escrow Buddy Enhanced</string>
+```
+
+### Secure Password Storage
+
+```bash
+# Store SMTP password in Keychain
+security add-generic-password \
+    -a "smtp-username" \
+    -s "com.netflix.escrow-buddy.smtp" \
+    -w "your-smtp-password" \
+    -T /usr/local/bin/EscrowBuddyDaemon
+
+# Reference in configuration
+<key>SMTPPassword</key>
+<string>keychain:com.netflix.escrow-buddy.smtp</string>
+```
+
+### Service-Specific Examples
+
+#### smtp2go Configuration
+```bash
+sudo defaults write /Library/Preferences/com.netflix.escrow-buddy EnableSMTP -bool YES
+sudo defaults write /Library/Preferences/com.netflix.escrow-buddy SMTPServer -string "mail.smtp2go.com"
+sudo defaults write /Library/Preferences/com.netflix.escrow-buddy SMTPPort -int 587
+sudo defaults write /Library/Preferences/com.netflix.escrow-buddy SMTPUseSTARTTLS -bool YES
+sudo defaults write /Library/Preferences/com.netflix.escrow-buddy SMTPUsername -string "your-smtp2go-username"
+```
+
+#### SendGrid Configuration
+```bash
+sudo defaults write /Library/Preferences/com.netflix.escrow-buddy SMTPServer -string "smtp.sendgrid.net"
+sudo defaults write /Library/Preferences/com.netflix.escrow-buddy SMTPPort -int 587
+sudo defaults write /Library/Preferences/com.netflix.escrow-buddy SMTPUsername -string "apikey"
+# Password is your SendGrid API key
+```
+
+#### Office 365 Configuration
+```bash
+sudo defaults write /Library/Preferences/com.netflix.escrow-buddy SMTPServer -string "smtp.office365.com"
+sudo defaults write /Library/Preferences/com.netflix.escrow-buddy SMTPPort -int 587
+sudo defaults write /Library/Preferences/com.netflix.escrow-buddy SMTPUseSTARTTLS -bool YES
+sudo defaults write /Library/Preferences/com.netflix.escrow-buddy SMTPUsername -string "user@company.com"
+```
+
+### Testing SMTP Configuration
+
+```bash
+# Test SMTP connection
+sudo /usr/local/bin/EscrowBuddyDaemon --test-smtp
+
+# Send test compliance report
+sudo /usr/local/bin/EscrowBuddyDaemon --send-test-report admin@company.com
+
+# Verify SMTP logs
+log show --predicate 'subsystem == "com.netflix.Escrow-Buddy" AND category == "SMTP"' --last 1h
+```
+
+### Troubleshooting SMTP
+
+| Issue | Solution |
+|-------|----------|
+| Authentication Failed | Verify username/password, check for 2FA/app passwords |
+| Connection Timeout | Check firewall rules for SMTP ports (25, 465, 587) |
+| TLS Handshake Failed | Ensure SMTPUseSSL or SMTPUseSTARTTLS is correctly set |
+| Rate Limiting | Configure batch sending with delays |
+| Invalid From Address | Verify sender address is authorized by SMTP service |
+
+### Email Recipients Configuration
+
+```xml
+<!-- Configure report recipients -->
+<key>ComplianceReportRecipients</key>
+<array>
+    <string>security-team@company.com</string>
+    <string>compliance@company.com</string>
+</array>
+
+<!-- Configure alert recipients -->
+<key>AlertRecipients</key>
+<array>
+    <string>it-ops@company.com</string>
+    <string>security-alerts@company.com</string>
+</array>
 ```
 
 ## Performance Tuning

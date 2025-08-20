@@ -47,6 +47,19 @@ typedef NS_ENUM(NSInteger, ConfigurationSource) {
 @property (nonatomic, readonly) BOOL enableAPIIntegration;
 @property (nonatomic, readonly) NSString * _Nullable jamfServerURL;
 
+#pragma mark - SMTP Settings
+
+@property (nonatomic, readonly) BOOL enableSMTP;
+@property (nonatomic, readonly) NSString * _Nullable smtpServer;
+@property (nonatomic, readonly) NSInteger smtpPort;
+@property (nonatomic, readonly) BOOL smtpRequiresAuth;
+@property (nonatomic, readonly) NSString * _Nullable smtpUsername;
+@property (nonatomic, readonly) NSString * _Nullable smtpPassword;
+@property (nonatomic, readonly) BOOL smtpUseSSL;
+@property (nonatomic, readonly) BOOL smtpUseSTARTTLS;
+@property (nonatomic, readonly) NSString * _Nullable smtpFromAddress;
+@property (nonatomic, readonly) NSString * _Nullable smtpFromName;
+
 #pragma mark - Notification Settings
 
 @property (nonatomic, readonly) BOOL enableNotifications;

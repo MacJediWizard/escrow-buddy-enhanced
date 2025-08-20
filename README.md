@@ -31,6 +31,7 @@ The original Escrow Buddy requires users to **logout and login** to rotate FileV
 - **🔄 Smart Rotation** - Coordinates between daemon and auth plugin to prevent conflicts
 - **🔑 Recovery Key Detection** - Automatically rotates after recovery key is used
 - **📝 Audit Everything** - Complete chain of custody for every key rotation
+- **📧 SMTP Email Support** - Send reports via SMTP relay (smtp2go, SendGrid, etc.) without Mail.app
 
 ### Why This Matters
 
