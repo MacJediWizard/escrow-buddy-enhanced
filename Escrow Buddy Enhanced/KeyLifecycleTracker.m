@@ -284,6 +284,51 @@ static NSString *const kKeyEventsPlistPath = @"/var/db/escrow_buddy_events.plist
     os_log_info(self.logger, "Recorded event %{public}@ for key %{public}@", eventName, keyID);
 }
 
+- (void)recordRotationWithReason:(NSInteger)reason keyID:(NSString *)keyID {
+    // Record the rotation event
+    [self recordKeyEvent:KeyEventRotated forKeyID:keyID];
+    
+    // Add additional metadata for the rotation
+    NSMutableDictionary *rotationInfo = [NSMutableDictionary dictionary];
+    rotationInfo[@"type"] = @"rotation";
+    rotationInfo[@"reason"] = @(reason);
+    rotationInfo[@"keyID"] = keyID;
+    rotationInfo[@"timestamp"] = [NSDate date];
+    
+    NSString *reasonString = @"Unknown";
+    switch (reason) {
+        case 0: reasonString = @"None"; break;
+        case 1: reasonString = @"Age"; break;
+        case 2: reasonString = @"Used"; break;
+        case 3: reasonString = @"Compliance"; break;
+        case 4: reasonString = @"Manual"; break;
+        case 5: reasonString = @"Scheduled"; break;
+    }
+    rotationInfo[@"reasonString"] = reasonString;
+    
+    [self.allEvents addObject:rotationInfo];
+    
+    os_log_info(self.logger, "Recorded rotation with reason %{public}@ for key %{public}@", reasonString, keyID);
+}
+
+- (void)recordKeyUsageEvent:(NSDictionary *)eventInfo {
+    // Record that a recovery key was used
+    NSString *keyID = self.currentKey.keyID ?: @"unknown";
+    [self recordKeyEvent:KeyEventUsed forKeyID:keyID];
+    
+    // Add the usage event with additional info
+    NSMutableDictionary *usageEvent = [eventInfo mutableCopy];
+    if (!usageEvent) {
+        usageEvent = [NSMutableDictionary dictionary];
+    }
+    usageEvent[@"keyID"] = keyID;
+    usageEvent[@"timestamp"] = usageEvent[@"date"] ?: [NSDate date];
+    
+    [self.allEvents addObject:usageEvent];
+    
+    os_log_info(self.logger, "Recorded key usage event for key %{public}@", keyID);
+}
+
 - (NSArray *)getEventsForKey:(NSString *)keyID {
     NSMutableArray *events = [NSMutableArray array];
     

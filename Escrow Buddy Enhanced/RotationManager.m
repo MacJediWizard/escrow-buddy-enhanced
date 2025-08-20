@@ -18,6 +18,8 @@
 //
 
 #import "RotationManager.h"
+#import "MDMRotationHandler.h"
+#import "KeyLifecycleTracker.h"
 #import <os/log.h>
 
 static NSString *const kRotationManagerDomain = @"com.netflix.Escrow-Buddy";
@@ -28,6 +30,8 @@ static NSString *const kRotationHistoryPlistPath = @"/var/db/escrow_buddy_histor
 @property (nonatomic, strong) NSMutableDictionary *keyLifecycleData;
 @property (nonatomic, strong) NSMutableArray *rotationHistory;
 @property (nonatomic, strong) os_log_t logger;
+@property (nonatomic, strong) MDMRotationHandler *mdmHandler;
+@property (nonatomic, strong) KeyLifecycleTracker *lifecycleTracker;
 @end
 
 @implementation RotationManager
@@ -47,6 +51,8 @@ static NSString *const kRotationHistoryPlistPath = @"/var/db/escrow_buddy_histor
     self = [super init];
     if (self) {
         _logger = os_log_create("com.netflix.Escrow-Buddy", "RotationManager");
+        _mdmHandler = [MDMRotationHandler sharedHandler];
+        _lifecycleTracker = [KeyLifecycleTracker sharedTracker];
         [self loadKeyLifecycleData];
         [self loadRotationHistory];
     }
@@ -441,23 +447,59 @@ static NSString *const kRotationHistoryPlistPath = @"/var/db/escrow_buddy_histor
     
     [self recordRotation:rotationReason];
     
-    // Trigger the actual rotation through MDM or other mechanism
-    // This would typically call into MDMRotationHandler or similar
+    // Trigger the actual rotation through MDM
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        // Simulate rotation process
-        BOOL success = YES;
-        NSError *error = nil;
+        __block BOOL success = NO;
+        __block NSError *error = nil;
+        __block NSString *newKeyID = nil;
         
-        // TODO: Implement actual rotation logic here
-        // For example:
-        // success = [self.mdmHandler performRotation:&error];
+        // Check if MDM rotation is available
+        if (![self.mdmHandler canPerformMDMRotation]) {
+            error = [NSError errorWithDomain:@"com.netflix.Escrow-Buddy"
+                                       code:1001
+                                   userInfo:@{NSLocalizedDescriptionKey: @"MDM rotation not available"}];
+            
+            // Notify MDM that rotation is needed
+            [self.mdmHandler notifyMDMRotationNeeded];
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                if (completion) {
+                    completion(NO, error);
+                }
+            });
+            return;
+        }
+        
+        // Create semaphore for synchronous wait
+        dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+        
+        // Perform MDM-triggered rotation
+        [self.mdmHandler performMDMRotationWithCompletion:^(BOOL rotationSuccess, NSString *keyID, NSError *rotationError) {
+            success = rotationSuccess;
+            newKeyID = keyID;
+            error = rotationError;
+            dispatch_semaphore_signal(semaphore);
+        }];
+        
+        // Wait for rotation to complete (with timeout)
+        dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(300 * NSEC_PER_SEC)); // 5 minute timeout
+        long result = dispatch_semaphore_wait(semaphore, timeout);
+        
+        if (result != 0) {
+            // Timeout occurred
+            success = NO;
+            error = [NSError errorWithDomain:@"com.netflix.Escrow-Buddy"
+                                       code:1002
+                                   userInfo:@{NSLocalizedDescriptionKey: @"Rotation timeout"}];
+        }
         
         if (success) {
             // Clear the used flag after successful rotation
             [self resetKeyUsedStatus];
             
             // Update lifecycle tracker
-            [self.lifecycleTracker recordRotationWithReason:rotationReason];
+            [self.lifecycleTracker recordRotationWithReason:rotationReason
+                                                       keyID:newKeyID ?: [[NSUUID UUID] UUIDString]];
         }
         
         // Call completion handler on main queue

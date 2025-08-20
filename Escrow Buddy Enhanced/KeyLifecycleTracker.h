@@ -88,6 +88,8 @@ typedef NS_ENUM(NSInteger, KeyEvent) {
 #pragma mark - Event Tracking
 
 - (void)recordKeyEvent:(KeyEvent)event forKeyID:(NSString *)keyID;
+- (void)recordRotationWithReason:(NSInteger)reason keyID:(NSString *)keyID;
+- (void)recordKeyUsageEvent:(NSDictionary *)eventInfo;
 - (NSArray *)getEventsForKey:(NSString *)keyID;
 - (NSArray *)getAllKeyEvents;
 - (void)cleanupOldEvents:(NSInteger)daysToKeep;
