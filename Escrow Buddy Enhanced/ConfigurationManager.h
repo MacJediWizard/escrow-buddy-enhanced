@@ -79,6 +79,10 @@ typedef NS_ENUM(NSInteger, ConfigurationSource) {
 - (BOOL)updateConfigurationValue:(NSString *)key value:(id)value;
 - (void)resetToDefaults;
 
+#pragma mark - Configuration Access
+
+- (id)getValueForKey:(NSString *)key defaultValue:(id)defaultValue;
+
 #pragma mark - MDM Profile Support
 
 - (BOOL)isMDMManaged;

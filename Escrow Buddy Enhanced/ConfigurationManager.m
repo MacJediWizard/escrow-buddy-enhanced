@@ -267,6 +267,21 @@ static NSString *const kConfigurationPlistPath = @"/Library/Preferences/com.netf
     return success;
 }
 
+#pragma mark - Configuration Access
+
+- (id)getValueForKey:(NSString *)key defaultValue:(id)defaultValue {
+    if (!key) {
+        return defaultValue;
+    }
+    
+    id value = self.configuration[key];
+    if (value) {
+        return value;
+    }
+    
+    return defaultValue;
+}
+
 #pragma mark - MDM Profile Support
 
 - (BOOL)isMDMManaged {
