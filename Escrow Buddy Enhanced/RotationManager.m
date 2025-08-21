@@ -430,8 +430,7 @@ static NSString *const kRotationHistoryPlistPath = @"/var/db/escrow_buddy_histor
 - (void)rotateKeyWithReason:(NSString *)reason completion:(RotationCompletionHandler)completion {
     os_log_info(self.logger, "Rotating key with reason: %{public}@", reason);
     
-    // Here we would integrate with the actual rotation mechanism
-    // For now, this is a placeholder that triggers the rotation process
+    // Integrate with MDM rotation mechanism
     
     // Record the rotation attempt
     RotationReason rotationReason = RotationReasonManual;

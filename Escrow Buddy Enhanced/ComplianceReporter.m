@@ -806,14 +806,9 @@ static NSString *const kViolationHistoryPath = @"/var/db/escrow_buddy_violations
         return;
     }
     
-    // For a proper SMTP implementation, we would need to:
-    // 1. Establish TCP connection
-    // 2. Handle SMTP protocol (EHLO, AUTH, MAIL FROM, RCPT TO, DATA)
-    // 3. Handle TLS/SSL encryption
-    // 4. Send the message
-    
-    // Since implementing full SMTP protocol is complex, we'll use a simplified approach
-    // that sends the email data to an SMTP relay endpoint that handles the protocol
+    // Note: This implementation uses an HTTP/HTTPS endpoint that accepts email messages
+    // For services like SendGrid, Mailgun, or custom SMTP gateways that provide REST APIs
+    // For direct SMTP protocol support, integrate a library like MailCore or SMTPClient
     
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url];
     request.HTTPMethod = @"POST";

@@ -386,15 +386,15 @@ sudo chown root:wheel /Library/Preferences/com.netflix.escrow-buddy.plist
 #!/bin/bash
 # compliance_audit.sh
 
-# Generate compliance report
-sudo /usr/local/bin/EscrowBuddyDaemon --compliance-report
+# Check current compliance status
+ROTATION_NEEDED=$(defaults read /Library/Preferences/com.netflix.escrow-buddy RotationNeeded 2>/dev/null)
+KEY_AGE=$(defaults read /Library/Preferences/com.netflix.escrow-buddy CurrentKeyAge 2>/dev/null)
 
-# Verify all devices compliant
-COMPLIANT=$(jq '.compliance_status' /var/log/escrow_buddy_compliance/latest.json)
-
-if [ "$COMPLIANT" != "true" ]; then
-    echo "ALERT: Non-compliant devices detected"
-    # Send alert to security team
+if [ "$ROTATION_NEEDED" == "1" ]; then
+    echo "ALERT: Key rotation needed"
+    echo "Current key age: $KEY_AGE days"
+    # Trigger rotation
+    sudo kill -USR1 $(pgrep EscrowBuddyDaemon)
 fi
 
 # Archive reports for audit
@@ -482,14 +482,14 @@ sudo defaults write /Library/Preferences/com.netflix.escrow-buddy SMTPUsername -
 ### Testing SMTP Configuration
 
 ```bash
-# Test SMTP connection
-sudo /usr/local/bin/EscrowBuddyDaemon --test-smtp
+# Verify SMTP configuration
+sudo defaults read /Library/Preferences/com.netflix.escrow-buddy | grep SMTP
 
-# Send test compliance report
-sudo /usr/local/bin/EscrowBuddyDaemon --send-test-report admin@company.com
+# Check daemon logs for email attempts
+log show --predicate 'subsystem == "com.netflix.Escrow-Buddy"' --last 1h | grep -i smtp
 
-# Verify SMTP logs
-log show --predicate 'subsystem == "com.netflix.Escrow-Buddy" AND category == "SMTP"' --last 1h
+# Trigger a compliance report (which will send email if configured)
+sudo kill -USR1 $(pgrep EscrowBuddyDaemon)
 ```
 
 ### Troubleshooting SMTP
