@@ -600,6 +600,118 @@ static NSString *const kDaemonStatusFile = @"/var/db/escrow_buddy_daemon_status.
     }
 }
 
+- (void)notifyLoginOccurredForUser:(NSString *)username reply:(void (^)(void))reply {
+    os_log_info(self.logger, "Login notification received for user: %{public}@", username);
+    
+    // Record login event
+    [self.enhancedLogger log:EscrowBuddyLogLevelInfo 
+                      message:[NSString stringWithFormat:@"User login: %@", username]
+                     category:@"UserActivity"];
+    
+    // Check if rotation is needed after login
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), self.daemonQueue, ^{
+        if ([self isRotationNeeded]) {
+            os_log_info(self.logger, "Rotation needed after login, scheduling background rotation");
+            [self scheduleNextRotationCheck];
+        }
+    });
+    
+    if (reply) {
+        reply();
+    }
+}
+
+- (void)notifyLogoutOccurredForUser:(NSString *)username reply:(void (^)(void))reply {
+    os_log_info(self.logger, "Logout notification received for user: %{public}@", username);
+    
+    // Record logout event
+    [self.enhancedLogger log:EscrowBuddyLogLevelInfo 
+                      message:[NSString stringWithFormat:@"User logout: %@", username]
+                     category:@"UserActivity"];
+    
+    if (reply) {
+        reply();
+    }
+}
+
+- (void)notifyKeyRotatedByPlugin:(NSDictionary *)rotationInfo reply:(void (^)(void))reply {
+    os_log_info(self.logger, "Plugin rotated key notification received");
+    
+    // Update our state to reflect the plugin's rotation
+    NSString *keyID = rotationInfo[@"keyID"];
+    NSString *user = rotationInfo[@"user"];
+    NSDate *timestamp = rotationInfo[@"timestamp"];
+    
+    if (keyID) {
+        // Record the rotation
+        [self.lifecycleTracker rotateKey:keyID reason:@"Plugin rotation during login"];
+        self.lastRotationDate = timestamp ?: [NSDate date];
+        
+        // Clear any pending rotation flags
+        [self.rotationManager clearManualRotationFlag];
+        
+        // Log the event
+        [self.enhancedLogger logRotationEvent:@"Plugin-initiated rotation" 
+                                        reason:[NSString stringWithFormat:@"Login by user: %@", user]
+                                         keyID:keyID];
+    }
+    
+    // Reset rotation timer since we just rotated
+    [self scheduleNextRotationCheck];
+    
+    if (reply) {
+        reply();
+    }
+}
+
+- (void)getConfigurationWithReply:(void (^)(NSDictionary *config))reply {
+    if (reply) {
+        reply([self getCurrentConfiguration]);
+    }
+}
+
+- (void)updateConfiguration:(NSDictionary *)config reply:(void (^)(BOOL success, NSError * _Nullable error))reply {
+    BOOL success = [self updateConfiguration:config];
+    if (reply) {
+        NSError *error = success ? nil : [NSError errorWithDomain:@"EscrowBuddyDaemon" 
+                                                             code:400 
+                                                         userInfo:@{NSLocalizedDescriptionKey: @"Failed to update configuration"}];
+        reply(success, error);
+    }
+}
+
+- (void)reloadConfigurationWithReply:(void (^)(BOOL success))reply {
+    [self reloadConfiguration];
+    if (reply) {
+        reply(YES);
+    }
+}
+
+- (void)getStatisticsWithReply:(void (^)(NSDictionary *stats))reply {
+    if (reply) {
+        reply([self getStatistics]);
+    }
+}
+
+- (void)getDiagnosticsWithReply:(void (^)(NSDictionary *diagnostics))reply {
+    if (reply) {
+        NSDictionary *diagnostics = @{
+            @"daemonVersion": @"2.0.0",
+            @"uptime": @([self getUptime]),
+            @"rotationCount": @([self.lifecycleTracker getTotalRotationCount]),
+            @"lastRotation": self.lastRotationDate ?: [NSNull null],
+            @"xpcConnections": @(self.xpcConnections.count),
+            @"configSource": @([self.configManager getConfigurationSource])
+        };
+        reply(diagnostics);
+    }
+}
+
+- (NSTimeInterval)getUptime {
+    // This would need to track when daemon started
+    return [[NSDate date] timeIntervalSince1970];
+}
+
 - (void)performHealthCheck {
     os_log_info(self.logger, "Performing health check");
     
