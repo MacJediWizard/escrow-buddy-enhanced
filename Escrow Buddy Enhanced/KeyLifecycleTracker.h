@@ -60,6 +60,7 @@ typedef NS_ENUM(NSInteger, KeyEvent) {
 #pragma mark - Current Key Management
 
 - (KeyMetadata * _Nullable)getCurrentKey;
+- (NSString * _Nullable)getCurrentKeyID;
 - (BOOL)createNewKey:(NSString *)keyID;
 - (BOOL)updateCurrentKeyStatus:(KeyStatus)status;
 - (NSInteger)getCurrentKeyAgeDays;

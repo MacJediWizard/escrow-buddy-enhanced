@@ -104,6 +104,10 @@ static NSString *const kKeyEventsPlistPath = @"/var/db/escrow_buddy_events.plist
     return self.currentKey;
 }
 
+- (NSString *)getCurrentKeyID {
+    return self.currentKey ? self.currentKey.keyID : nil;
+}
+
 - (BOOL)createNewKey:(NSString *)keyID {
     os_log_info(self.logger, "Creating new key with ID: %{public}@", keyID);
     

@@ -455,6 +455,151 @@ static NSString *const kDaemonStatusFile = @"/var/db/escrow_buddy_daemon_status.
     return [self.lifecycleTracker getKeyStatistics];
 }
 
+#pragma mark - XPC Protocol Implementation (EscrowBuddyDaemonProtocol)
+
+- (void)getDaemonStatusWithReply:(void (^)(NSDictionary *status))reply {
+    if (reply) {
+        reply([self getDaemonStatus]);
+    }
+}
+
+- (void)getKeyInfoWithReply:(void (^)(NSDictionary *keyInfo))reply {
+    if (reply) {
+        NSDictionary *keyInfo = @{
+            @"currentKeyAge": @([self getCurrentKeyAgeDays]),
+            @"lastRotation": self.lastRotationDate ?: [NSNull null],
+            @"rotationNeeded": @([self isRotationNeeded]),
+            @"keyID": [self.lifecycleTracker getCurrentKeyID] ?: @"unknown"
+        };
+        reply(keyInfo);
+    }
+}
+
+- (void)getRotationHistoryWithCount:(NSInteger)count reply:(void (^)(NSArray *history))reply {
+    if (reply) {
+        reply([self getRotationHistory:count]);
+    }
+}
+
+- (void)checkRotationNeededWithReply:(void (^)(BOOL needed, NSString * _Nullable reason))reply {
+    if (reply) {
+        BOOL needed = [self isRotationNeeded];
+        NSString *reason = nil;
+        if (needed) {
+            RotationReason rotationReason = [self.rotationManager getRotationReason];
+            switch (rotationReason) {
+                case RotationReasonAge:
+                    reason = @"Key age exceeds maximum";
+                    break;
+                case RotationReasonUsed:
+                    reason = @"Recovery key was used";
+                    break;
+                case RotationReasonCompliance:
+                    reason = @"Compliance requirement";
+                    break;
+                case RotationReasonManual:
+                    reason = @"Manual rotation requested";
+                    break;
+                case RotationReasonScheduled:
+                    reason = @"Scheduled rotation";
+                    break;
+                default:
+                    reason = @"Unknown reason";
+                    break;
+            }
+        }
+        reply(needed, reason);
+    }
+}
+
+- (void)performRotationWithReason:(NSString *)reason reply:(void (^)(BOOL success, NSError * _Nullable error))reply {
+    [self performBackgroundRotationWithCompletion:^(BOOL success, NSError *error) {
+        if (reply) {
+            reply(success, error);
+        }
+    }];
+}
+
+- (void)forceRotationWithReply:(void (^)(BOOL started))reply {
+    dispatch_async(self.daemonQueue, ^{
+        BOOL started = NO;
+        if (self.status != DaemonStatusRotating) {
+            [self performBackgroundRotationWithCompletion:nil];
+            started = YES;
+        }
+        if (reply) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                reply(started);
+            });
+        }
+    });
+}
+
+- (void)getComplianceStatusWithReply:(void (^)(NSDictionary *status))reply {
+    if (reply) {
+        ComplianceReporter *reporter = [ComplianceReporter sharedReporter];
+        ComplianceStatus status = [reporter checkCompliance];
+        NSDictionary *complianceInfo = @{
+            @"compliant": @(status == ComplianceStatusCompliant),
+            @"status": @(status),
+            @"violations": [reporter getComplianceViolations],
+            @"recommendations": [reporter getComplianceRecommendations]
+        };
+        reply(complianceInfo);
+    }
+}
+
+- (void)generateComplianceReportWithFormat:(NSString *)format reply:(void (^)(NSData * _Nullable reportData, NSError * _Nullable error))reply {
+    if (reply) {
+        ComplianceReporter *reporter = [ComplianceReporter sharedReporter];
+        ReportFormat reportFormat = ReportFormatJSON;
+        if ([format isEqualToString:@"XML"]) {
+            reportFormat = ReportFormatXML;
+        } else if ([format isEqualToString:@"CSV"]) {
+            reportFormat = ReportFormatCSV;
+        } else if ([format isEqualToString:@"HTML"]) {
+            reportFormat = ReportFormatHTML;
+        }
+        
+        NSData *reportData = [reporter generateReportData:reportFormat];
+        reply(reportData, nil);
+    }
+}
+
+- (void)updateConfigurationValue:(NSString *)key value:(id)value reply:(void (^)(BOOL success))reply {
+    BOOL success = [self.configManager updateConfigurationValue:key value:value];
+    if (reply) {
+        reply(success);
+    }
+}
+
+- (void)reloadConfigurationWithReply:(void (^)(void))reply {
+    [self reloadConfiguration];
+    if (reply) {
+        reply();
+    }
+}
+
+- (void)enableDebugModeWithReply:(void (^)(void))reply {
+    [self enableDebugMode:YES];
+    if (reply) {
+        reply();
+    }
+}
+
+- (void)performHealthCheckWithReply:(void (^)(NSDictionary *health))reply {
+    [self performHealthCheck];
+    if (reply) {
+        NSDictionary *health = @{
+            @"canRotate": @([self canPerformRotation]),
+            @"configValid": @([self.configManager validateConfiguration]),
+            @"keyAge": @([self getCurrentKeyAgeDays]),
+            @"daemonStatus": @(self.status)
+        };
+        reply(health);
+    }
+}
+
 - (void)performHealthCheck {
     os_log_info(self.logger, "Performing health check");
     
